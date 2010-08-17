@@ -12,10 +12,12 @@
 ;; Font/color stuffs
 (require 'color-theme)
 (color-theme-initialize)
-(color-theme-blackboard)
+(if (null window-system)
+    (color-theme-arjen)
+  (color-theme-blackboard))
 (if (eq system-type 'windows-nt)
     (set-face-attribute 'default nil :family "Consolas")
-  ((set-face-attribute 'default nil :family "Terminus")))
+  (set-face-attribute 'default nil :family "Terminus"))
 
 ;; Set window transparent
 (add-to-list 'default-frame-alist (cons 'alpha 90))
