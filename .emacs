@@ -38,6 +38,7 @@
 
 ;; Key binding stuffs
 (global-set-key (kbd "C-x C-b") 'ibuffer)
+(global-set-key (kbd "C-x C-r") 'revert-buffer)
 (global-set-key (kbd "<f4>") 'select-tag)
 (global-set-key (kbd "<f6>") 'goto-line)
 (global-set-key (kbd "<f11>") 'bookmark-bmenu-list)
@@ -45,34 +46,34 @@
 (define-key emacs-lisp-mode-map (kbd "<f5>") 'eval-buffer)
 
 (add-hook 'dired-load-hook
-	  (lambda ()
-	    (load "dired-x")))
+          (lambda ()
+            (load "dired-x")))
 
 (add-hook 'dired-mode-hook
-	  (lambda ()
-	    (dired-omit-mode 1)
-	    (setq dired-omit-files "\\.\\(o\\|d\\|opic\\)$")))
+          (lambda ()
+            (dired-omit-mode 1)
+            (setq dired-omit-files "\\.\\(o\\|d\\|opic\\)$")))
 
 (setq ibuffer-saved-filter-groups
       '(("default"
-	 ("Program" (or
-		     (mode . c-mode)
-		     (mode . cc-mode)
-		     (mode . makefile-mode)
-		     (mode . makefile-gmake-mode)
-		     (mode . makefile-automake-mode)
-		     (mode . asm-mode)
-		     (mode . python-mode)))
-	 ("Patch" (mode . diff-mode))
-	 ("Elisp" (mode . emacs-lisp-mode))
-	 ("Dired" (mode . dired-mode))
-	 ("W3m" (name . "^\\*w3m\\*.*$"))
-	 ("System" (name . "^\\*.*\\*$"))
-	 )))
+         ("Program" (or
+                     (mode . c-mode)
+                     (mode . cc-mode)
+                     (mode . makefile-mode)
+                     (mode . makefile-gmake-mode)
+                     (mode . makefile-automake-mode)
+                     (mode . asm-mode)
+                     (mode . python-mode)))
+         ("Patch" (mode . diff-mode))
+         ("Elisp" (mode . emacs-lisp-mode))
+         ("Dired" (mode . dired-mode))
+         ("W3m" (name . "^\\*w3m\\*.*$"))
+         ("System" (name . "^\\*.*\\*$"))
+         )))
 
 (add-hook 'ibuffer-mode-hook
-	  (lambda ()
-	    (ibuffer-switch-to-saved-filter-groups "default")))
+          (lambda ()
+            (ibuffer-switch-to-saved-filter-groups "default")))
 
 (custom-set-variables
   ;; custom-set-variables was added by Custom.

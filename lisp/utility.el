@@ -5,7 +5,8 @@
    (cons ?k "/usr/src/linux")
    (cons ?i "~/igb-mig")
    (cons ?c "~/xen/tools/libxc")
-   (cons ?p "~/xen/tools/python")))
+   (cons ?p "~/xen/tools/python")
+   (cons ?f "~/xen/tools/firmware")))
 
 (defun select-tag (char)
   (interactive "cTag code:")
