@@ -1,11 +1,12 @@
 (defvar select-tag-list
-  ((?x "~/xen/xen")
-   (?q "~/xen/tools/ioemu-remote")
-   (?k "/usr/src/linux")
-   (?i "~/igb-mig")
-   (?c "~/xen/tools/libxc")
-   (?p "~/xen/tools/python")
-   (?f "~/xen/tools/firmware")))
+  (list
+   (cons ?x "~/xen/xen")
+   (cons ?q "~/xen/tools/ioemu-remote")
+   (cons ?k "/usr/src/linux")
+   (cons ?i "~/igb-mig")
+   (cons ?c "~/xen/tools/libxc")
+   (cons ?p "~/xen/tools/python")
+   (cons ?f "~/xen/tools/firmware")))
 
 (defun select-tag (char)
   (interactive "cTag code:")
