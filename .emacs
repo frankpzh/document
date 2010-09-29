@@ -26,6 +26,8 @@
 (column-number-mode t)
 (display-time)
 (fset 'yes-or-no-p 'y-or-n-p)
+(setq scroll-margin 3)
+(setq scroll-conservatively 10000)
 
 ;; Tab stuffs
 (setq-default tab-width 4)
