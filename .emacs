@@ -50,9 +50,11 @@
 ;; Key binding stuffs
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "C-x C-r") 'revert-buffer)
+(global-set-key (kbd "C-x j") 'jump-to-register)
+(global-set-key (kbd "C-x m") 'point-to-register)
 (global-set-key (kbd "<f3>") 'taglist)
-(global-set-key (kbd "<f4>") 'select-tag)
-(global-set-key (kbd "C-<f4>") 'clear-tag-list)
+(global-set-key (kbd "<f4>") 'clear-tag-list)
+(global-set-key (kbd "C-<f4>") 'select-tag)
 (global-set-key (kbd "<f6>") 'goto-line)
 (global-set-key (kbd "<f11>") 'bookmark-bmenu-list)
 (global-set-key (kbd "C-<f11>") 'bookmark-set)
