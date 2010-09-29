@@ -3,6 +3,7 @@
 (require 'dired-x)
 (require 'maximize-emacs)
 (require 'utility)
+(require 'taglist)
 
 ;; Desktop save
 (require 'desktop)
@@ -39,6 +40,7 @@
 ;; Key binding stuffs
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "C-x C-r") 'revert-buffer)
+(global-set-key (kbd "<f3>") 'taglist)
 (global-set-key (kbd "<f4>") 'select-tag)
 (global-set-key (kbd "C-<f4>") 'clear-tag-list)
 (global-set-key (kbd "<f6>") 'goto-line)
