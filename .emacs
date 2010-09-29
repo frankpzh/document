@@ -30,6 +30,14 @@
 (setq scroll-conservatively 10000)
 
 ;; Tab stuffs
+(defun tab-8 nil
+  (interactive)
+  (setq tab-width 8)
+  (setq indent-tabs-mode t))
+(defun tab-4 nil
+  (interactive)
+  (setq tab-width 4)
+  (setq indent-tabs-mode nil))
 (setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
 (require 'cc-mode)
