@@ -2,4 +2,6 @@
 resume/*.pdf
 resume/*.log
 resume/*.dvi
+resume/*.aux
+resume/*.out
 lisp/auto-save-list
