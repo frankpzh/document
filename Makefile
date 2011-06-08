@@ -2,7 +2,10 @@
 help:
 	@echo Frank Pan\'s power makefile
 	@echo ---------------------------------------------------
-	@echo set-emacs: setting your emacs config
+	@echo set-emacs: setting emacs config
+	@echo set-git:   setting git config
+	@echo
+	@echo WARNING: set-* will kill your old config
 
 PWD=$(shell pwd)
 
@@ -10,3 +13,8 @@ PWD=$(shell pwd)
 set-emacs:
 	rm -rf ~/.emacs.d
 	cd ~ && ln -s $(PWD)/lisp .emacs.d
+
+.PHONY: set-git
+set-git:
+	rm -rf ~/.gitconfig
+	cd ~ && ln -s $(PWD)/.gitconfig
