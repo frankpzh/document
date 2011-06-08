@@ -1,0 +1,100 @@
+[2011-05-30 02:27:18,654 7966] DEBUG (XendCheckpoint:400) suspend
+[2011-05-30 02:27:18,659 7966] DEBUG (XendCheckpoint:127) In saveInputHandler suspend
+[2011-05-30 02:27:18,662 7966] DEBUG (XendCheckpoint:129) Suspending 17 ...
+[2011-05-30 02:27:18,666 7966] DEBUG (XendDomainInfo:527) XendDomainInfo.shutdown(suspend)
+[2011-05-30 02:27:18,671 7966] DEBUG (XendDomainInfo:1886) XendDomainInfo.handleShutdownWatch
+[2011-05-30 02:27:18,673 7966] DEBUG (XendDomainInfo:1886) XendDomainInfo.handleShutdownWatch
+[2011-05-30 02:27:19,248 7966] INFO (XendDomainInfo:2083) Domain has shutdown: name=migrating-specweb id=17 reason=suspend.
+[2011-05-30 02:27:19,289 7966] INFO (XendCheckpoint:138) Domain 17 suspended.
+[2011-05-30 02:27:19,495 7966] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 02:27:19,496 7966] DEBUG (XendCheckpoint:147) Written done
+[2011-05-30 02:27:19,526 7966] DEBUG (XendDomainInfo:3094) XendDomainInfo.destroy: domid=17
+[2011-05-30 02:27:19,719 7966] DEBUG (XendDomainInfo:2407) Destroying device model
+[2011-05-30 02:27:19,823 7966] INFO (image:615) migrating-specweb device model terminated
+[2011-05-30 02:27:19,825 7966] DEBUG (XendDomainInfo:2414) Releasing devices
+[2011-05-30 02:27:19,826 7966] DEBUG (XendDomainInfo:2420) Removing vif/0
+[2011-05-30 02:27:19,828 7966] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vif, device = vif/0
+[2011-05-30 02:27:19,832 7966] DEBUG (XendDomainInfo:2420) Removing console/0
+[2011-05-30 02:27:19,833 7966] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = console, device = console/0
+[2011-05-30 02:27:19,842 7966] DEBUG (XendDomainInfo:2420) Removing vbd/768
+[2011-05-30 02:27:19,843 7966] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vbd, device = vbd/768
+[2011-05-30 02:27:19,848 7966] DEBUG (XendDomainInfo:2420) Removing vfb/0
+[2011-05-30 02:27:19,850 7966] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vfb, device = vfb/0
+[2011-05-30 02:35:55,590 7966] DEBUG (XendDomainInfo:237) XendDomainInfo.restore(['domain', ['domid', '6'], ['cpu_weight', '256'], ['cpu_cap', '0'], ['pool_name', 'Pool-0'], ['bootloader', ''], ['vcpus', '4'], ['cpus', [[], [], [], []]], ['on_poweroff', 'destroy'], ['description', ''], ['on_crash', 'preserve'], ['uuid', 'c8a4b31b-fba1-db2f-a03c-3ea86c1bc8b6'], ['bootloader_args', ''], ['name', 'specweb'], ['on_reboot', 'restart'], ['maxmem', '1024'], ['memory', '1024'], ['shadow_memory', '12'], ['vcpu_avail', '15'], ['features', ''], ['on_xend_start', 'ignore'], ['on_xend_stop', 'ignore'], ['start_time', '1306693578.41'], ['cpu_time', '38.671327527'], ['online_vcpus', '4'], ['image', ['hvm', ['kernel', ''], ['superpages', '0'], ['videoram', '4'], ['hpet', '0'], ['stdvga', '0'], ['vnclisten', '0.0.0.0'], ['loader', '/usr/lib/xen/boot/hvmloader'], ['xen_platform_pci', '1'], ['rtc_timeoffset', '0'], ['pci', []], ['hap', '1'], ['localtime', '0'], ['timer_mode', '1'], ['pci_msitranslate', '1'], ['oos', '1'], ['apic', '1'], ['sdl', '0'], ['vpt_align', '1'], ['vncunused', '1'], ['boot', 'cd'], ['vncpasswd', 'XXXXXXXX'], ['pae', '1'], ['viridian', '0'], ['acpi', '1'], ['vnc', '1'], ['nographic', '0'], ['nomigrate', '0'], ['usb', '0'], ['tsc_mode', '0'], ['guest_os_type', 'default'], ['device_model', '/usr/lib/xen/bin/qemu-dm'], ['pci_power_mgmt', '0'], ['xauthority', '/root/.Xauthority'], ['isa', '0'], ['notes', ['SUSPEND_CANCEL', '1']]]], ['status', '2'], ['state', '-b----'], ['store_mfn', '1044476'], ['device', ['vif', ['bridge', 'xenbr0'], ['uuid', 'eb0e7c46-87c1-8a31-a438-bbec120530e7'], ['script', '/etc/xen/scripts/vif-bridge'], ['mac', '00:16:3e:0a:07:3f'], ['type', 'netfront'], ['backend', '0']]], ['device', ['console', ['protocol', 'vt100'], ['location', '6'], ['uuid', '84d736bc-62e0-0342-823a-d93742be1816']]], ['device', ['vbd', ['uuid', '869c5c04-e3af-ce87-78db-9e6a16bec7f8'], ['bootable', '1'], ['dev', 'hda:disk'], ['uname', 'file:/image/specweb.img'], ['mode', 'w'], ['backend', '0'], ['VDI', '']]], ['device', ['vfb', ['vncunused', '1'], ['vnc', '1'], ['uuid', '752d85db-a9a6-2bb0-cb60-27a84076c766'], ['vnclisten', '0.0.0.0'], ['vncpasswd', 'XXXXXXXX'], ['location', '0.0.0.0:5900']]], ['change_home_server', 'False']])
+[2011-05-30 02:35:55,600 7966] DEBUG (XendDomainInfo:2510) XendDomainInfo.constructDomain
+[2011-05-30 02:35:55,601 7966] DEBUG (balloon:187) Balloon: 1070644 KiB free; need 16384; done.
+[2011-05-30 02:35:55,607 7966] DEBUG (XendDomain:476) Adding Domain: 18
+[2011-05-30 02:35:55,609 7966] DEBUG (XendDomainInfo:3443) Storing VM details: {'on_xend_stop': 'ignore', 'pool_name': 'Pool-0', 'shadow_memory': '12', 'uuid': 'c8a4b31b-fba1-db2f-a03c-3ea86c1bc8b6', 'on_reboot': 'restart', 'start_time': '1306693578.41', 'on_poweroff': 'destroy', 'bootloader_args': '', 'on_xend_start': 'ignore', 'on_crash': 'preserve', 'xend/restart_count': '0', 'vcpus': '4', 'vcpu_avail': '15', 'bootloader': '', 'image': "(hvm (kernel '') (superpages 0) (videoram 4) (hpet 0) (stdvga 0) (vnclisten 0.0.0.0) (loader /usr/lib/xen/boot/hvmloader) (xen_platform_pci 1) (rtc_timeoffset 0) (pci ()) (hap 1) (localtime 0) (timer_mode 1) (pci_msitranslate 1) (oos 1) (apic 1) (sdl 0) (vpt_align 1) (vncunused 1) (boot cd) (vncpasswd XXXXXX) (pae 1) (viridian 0) (acpi 1) (vnc 1) (nographic 0) (nomigrate 0) (usb 0) (tsc_mode 0) (guest_os_type default) (device_model /usr/lib/xen/bin/qemu-dm) (pci_power_mgmt 0) (xauthority /root/.Xauthority) (isa 0) (notes (SUSPEND_CANCEL 1)))", 'name': 'specweb'}
+[2011-05-30 02:35:55,616 7966] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': '84d736bc-62e0-0342-823a-d93742be1816'}
+[2011-05-30 02:35:55,618 7966] DEBUG (DevController:95) DevController: writing {'state': '1', 'backend-id': '0', 'backend': '/local/domain/0/backend/console/18/0'} to /local/domain/18/device/console/0.
+[2011-05-30 02:35:55,619 7966] DEBUG (DevController:97) DevController: writing {'domain': 'specweb', 'frontend': '/local/domain/18/device/console/0', 'uuid': '84d736bc-62e0-0342-823a-d93742be1816', 'frontend-id': '18', 'state': '1', 'location': '6', 'online': '1', 'protocol': 'vt100'} to /local/domain/0/backend/console/18/0.
+[2011-05-30 02:35:55,627 7966] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1'}, 'vnc': '1', 'uuid': '752d85db-a9a6-2bb0-cb60-27a84076c766', 'vnclisten': '0.0.0.0', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5900'}
+[2011-05-30 02:35:55,629 7966] DEBUG (DevController:95) DevController: writing {'state': '1', 'backend-id': '0', 'backend': '/local/domain/0/backend/vfb/18/0'} to /local/domain/18/device/vfb/0.
+[2011-05-30 02:35:55,630 7966] DEBUG (DevController:97) DevController: writing {'vncunused': '1', 'domain': 'specweb', 'frontend': '/local/domain/18/device/vfb/0', 'uuid': '752d85db-a9a6-2bb0-cb60-27a84076c766', 'frontend-id': '18', 'vnclisten': '0.0.0.0', 'vncpasswd': 'XXXXXXXX', 'state': '1', 'location': '0.0.0.0:5900', 'online': '1', 'vnc': '1'} to /local/domain/0/backend/vfb/18/0.
+[2011-05-30 02:35:55,639 7966] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': '869c5c04-e3af-ce87-78db-9e6a16bec7f8', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/specweb.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 02:35:55,640 7966] DEBUG (DevController:95) DevController: writing {'backend-id': '0', 'virtual-device': '768', 'device-type': 'disk', 'state': '1', 'backend': '/local/domain/0/backend/vbd/18/768'} to /local/domain/18/device/vbd/768.
+[2011-05-30 02:35:55,641 7966] DEBUG (DevController:97) DevController: writing {'domain': 'specweb', 'frontend': '/local/domain/18/device/vbd/768', 'uuid': '869c5c04-e3af-ce87-78db-9e6a16bec7f8', 'bootable': '1', 'dev': 'hda', 'state': '1', 'params': '/image/specweb.img', 'mode': 'w', 'online': '1', 'frontend-id': '18', 'type': 'file'} to /local/domain/0/backend/vbd/18/768.
+[2011-05-30 02:35:55,650 7966] INFO (XendDomainInfo:2362) createDevice: vif : {'bridge': 'xenbr0', 'uuid': 'eb0e7c46-87c1-8a31-a438-bbec120530e7', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:0a:07:3f', 'type': 'netfront', 'backend': '0'}
+[2011-05-30 02:35:55,653 7966] DEBUG (DevController:95) DevController: writing {'backend-id': '0', 'mac': '00:16:3e:0a:07:3f', 'handle': '0', 'state': '1', 'backend': '/local/domain/0/backend/vif/18/0'} to /local/domain/18/device/vif/0.
+[2011-05-30 02:35:55,654 7966] DEBUG (DevController:97) DevController: writing {'bridge': 'xenbr0', 'domain': 'specweb', 'handle': '0', 'uuid': 'eb0e7c46-87c1-8a31-a438-bbec120530e7', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:0a:07:3f', 'frontend-id': '18', 'state': '1', 'online': '1', 'frontend': '/local/domain/18/device/vif/0', 'type': 'netfront'} to /local/domain/0/backend/vif/18/0.
+[2011-05-30 02:35:55,673 7966] DEBUG (XendDomainInfo:1799) Storing domain details: {'console/port': '6', 'cpu/3/availability': 'online', 'description': '', 'console/limit': '1048576', 'cpu/2/availability': 'online', 'vm': '/vm/c8a4b31b-fba1-db2f-a03c-3ea86c1bc8b6', 'domid': '18', 'image/suspend-cancel': '1', 'cpu/0/availability': 'online', 'memory/target': '1048576', 'control/platform-feature-multiprocessor-suspend': '1', 'console/type': 'ioemu', 'cpu/1/availability': 'online', 'store/port': '5', 'name': 'specweb'}
+[2011-05-30 02:35:55,693 7966] INFO (XendCheckpoint:263) restore hvm domain 18, apic=1, pae=1
+[2011-05-30 02:35:55,704 7966] DEBUG (image:337) Stored a VNC password for vfb access
+[2011-05-30 02:35:55,706 7966] DEBUG (image:891) args: boot, val: cd
+[2011-05-30 02:35:55,708 7966] DEBUG (image:891) args: fda, val: None
+[2011-05-30 02:35:55,710 7966] DEBUG (image:891) args: fdb, val: None
+[2011-05-30 02:35:55,711 7966] DEBUG (image:891) args: soundhw, val: None
+[2011-05-30 02:35:55,713 7966] DEBUG (image:891) args: localtime, val: 0
+[2011-05-30 02:35:55,715 7966] DEBUG (image:891) args: serial, val: None
+[2011-05-30 02:35:55,717 7966] DEBUG (image:891) args: std-vga, val: 0
+[2011-05-30 02:35:55,719 7966] DEBUG (image:891) args: isa, val: 0
+[2011-05-30 02:35:55,721 7966] DEBUG (image:891) args: acpi, val: 1
+[2011-05-30 02:35:55,723 7966] DEBUG (image:891) args: usb, val: 0
+[2011-05-30 02:35:55,725 7966] DEBUG (image:891) args: usbdevice, val: None
+[2011-05-30 02:35:55,726 7966] DEBUG (image:891) args: gfx_passthru, val: None
+[2011-05-30 02:35:55,731 7966] INFO (image:822) Need to create platform device.[domid:18]
+[2011-05-30 02:35:55,736 7966] DEBUG (XendCheckpoint:281) restore:shadow=0xc, _static_max=0x40000000, _static_min=0x0, 
+[2011-05-30 02:35:55,738 7966] DEBUG (XendCheckpoint:308) [xc_restore]: /usr/lib/xen/bin/xc_restore 4 18 5 6 1 1 1 0
+[2011-05-30 02:36:12,135 7966] DEBUG (XendCheckpoint:400) store-mfn 1044476
+[2011-05-30 02:36:12,137 7966] DEBUG (XendDomainInfo:3032) XendDomainInfo.completeRestore
+[2011-05-30 02:36:12,143 7966] DEBUG (image:337) Stored a VNC password for vfb access
+[2011-05-30 02:36:12,144 7966] DEBUG (image:891) args: boot, val: cd
+[2011-05-30 02:36:12,145 7966] DEBUG (image:891) args: fda, val: None
+[2011-05-30 02:36:12,146 7966] DEBUG (image:891) args: fdb, val: None
+[2011-05-30 02:36:12,147 7966] DEBUG (image:891) args: soundhw, val: None
+[2011-05-30 02:36:12,148 7966] DEBUG (image:891) args: localtime, val: 0
+[2011-05-30 02:36:12,149 7966] DEBUG (image:891) args: serial, val: None
+[2011-05-30 02:36:12,150 7966] DEBUG (image:891) args: std-vga, val: 0
+[2011-05-30 02:36:12,151 7966] DEBUG (image:891) args: isa, val: 0
+[2011-05-30 02:36:12,152 7966] DEBUG (image:891) args: acpi, val: 1
+[2011-05-30 02:36:12,154 7966] DEBUG (image:891) args: usb, val: 0
+[2011-05-30 02:36:12,155 7966] DEBUG (image:891) args: usbdevice, val: None
+[2011-05-30 02:36:12,157 7966] DEBUG (image:891) args: gfx_passthru, val: None
+[2011-05-30 02:36:12,159 7966] INFO (image:822) Need to create platform device.[domid:18]
+[2011-05-30 02:36:12,164 7966] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '18', '-domain-name', 'specweb', '-videoram', '4', '-vnc', '0.0.0.0:0,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cd', '-acpi', '-net', 'none', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.18']
+[2011-05-30 02:36:12,173 7966] INFO (image:467) device model pid: 17206
+[2011-05-30 02:36:12,176 7966] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 02:36:12,178 7966] DEBUG (XendDomainInfo:1799) Storing domain details: {'console/port': '6', 'cpu/3/availability': 'online', 'description': '', 'console/limit': '1048576', 'store/port': '5', 'cpu/2/availability': 'online', 'vm': '/vm/c8a4b31b-fba1-db2f-a03c-3ea86c1bc8b6', 'domid': '18', 'image/suspend-cancel': '1', 'cpu/0/availability': 'online', 'memory/target': '1048576', 'control/platform-feature-multiprocessor-suspend': '1', 'store/ring-ref': '1044476', 'cpu/1/availability': 'online', 'console/type': 'ioemu', 'name': 'specweb'}
+[2011-05-30 02:36:12,184 7966] DEBUG (XendDomainInfo:3046) XendDomainInfo.completeRestore done
+[2011-05-30 02:36:12,188 7966] DEBUG (XendDomainInfo:1886) XendDomainInfo.handleShutdownWatch
+[2011-05-30 02:36:12,189 7966] DEBUG (DevController:139) Waiting for devices tap2.
+[2011-05-30 02:36:12,193 7966] DEBUG (DevController:139) Waiting for devices vif.
+[2011-05-30 02:36:12,196 7966] DEBUG (DevController:144) Waiting for 0.
+[2011-05-30 02:36:12,199 7966] DEBUG (DevController:633) hotplugStatusCallback /local/domain/0/backend/vif/18/0/hotplug-status.
+[2011-05-30 02:36:12,201 7966] DEBUG (DevController:647) hotplugStatusCallback 1.
+[2011-05-30 02:36:12,203 7966] DEBUG (DevController:139) Waiting for devices vkbd.
+[2011-05-30 02:36:12,205 7966] DEBUG (DevController:139) Waiting for devices ioports.
+[2011-05-30 02:36:12,209 7966] DEBUG (DevController:139) Waiting for devices tap.
+[2011-05-30 02:36:12,211 7966] DEBUG (DevController:139) Waiting for devices vif2.
+[2011-05-30 02:36:12,212 7966] DEBUG (DevController:139) Waiting for devices console.
+[2011-05-30 02:36:12,217 7966] DEBUG (DevController:144) Waiting for 0.
+[2011-05-30 02:36:12,217 7966] DEBUG (DevController:139) Waiting for devices vscsi.
+[2011-05-30 02:36:12,219 7966] DEBUG (DevController:139) Waiting for devices vbd.
+[2011-05-30 02:36:12,220 7966] DEBUG (DevController:144) Waiting for 768.
+[2011-05-30 02:36:12,222 7966] DEBUG (DevController:633) hotplugStatusCallback /local/domain/0/backend/vbd/18/768/hotplug-status.
+[2011-05-30 02:36:12,223 7966] DEBUG (DevController:647) hotplugStatusCallback 1.
+[2011-05-30 02:36:12,225 7966] DEBUG (DevController:139) Waiting for devices irq.
+[2011-05-30 02:36:12,226 7966] DEBUG (DevController:139) Waiting for devices vfb.
+[2011-05-30 02:36:12,228 7966] DEBUG (DevController:139) Waiting for devices pci.
+[2011-05-30 02:36:12,229 7966] DEBUG (DevController:139) Waiting for devices vusb.
+[2011-05-30 02:36:12,230 7966] DEBUG (DevController:139) Waiting for devices vtpm.

@@ -1,0 +1,5 @@
+[  147.884269] Lock cost: 5276
+[  147.884269] Restore cost: 108700
+[  147.884269] Unlock cost: 3884
+[  147.884269] ARP set task cost: 6044
+[  148.667380] ARP flush cost: 15002

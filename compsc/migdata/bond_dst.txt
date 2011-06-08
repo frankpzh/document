@@ -1,0 +1,100 @@
+[2011-05-30 01:32:03,157 6906] INFO (XMLRPCServer:161) Opening Unix domain socket XML-RPC server on /var/run/xend/xmlrpc.sock.
+[2011-05-30 01:34:36,40 6906] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': '45a36f3b-ce97-5090-1469-3e36ee79364c'}
+[2011-05-30 01:34:36,49 6906] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1'}, 'vnc': '1', 'uuid': '1a915ee8-42ea-0f4d-6be5-9edac2bb6039', 'vnclisten': '0.0.0.0', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5900'}
+[2011-05-30 01:34:36,58 6906] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': '3745b200-6fa4-3cdb-14f5-ee3e7b458f5b', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/specweb.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 01:34:36,68 6906] INFO (XendDomainInfo:2362) createDevice: pci : {'devs': [{'slot': '0x10', 'domain': '0x0000', 'func': '0x0', 'bus': '0x05', 'shared_gfn': '252386', 'vdevfn': '0x20', 'key': '05:10.0', 'opts': [['msitranslate', '1'], ['power_mgmt', '0']], 'uuid': 'd43853e5-241f-896d-7330-69ad274b30cd'}], 'uuid': 'dad4d0bc-f346-a444-0065-4f66b3aa5c3f'}
+[2011-05-30 01:34:37,179 6906] INFO (XendCheckpoint:263) restore hvm domain 4, apic=1, pae=1
+[2011-05-30 01:34:37,188 6906] INFO (image:822) Need to create platform device.[domid:4]
+[2011-05-30 01:34:50,983 6906] INFO (image:822) Need to create platform device.[domid:4]
+[2011-05-30 01:34:50,990 6906] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '4', '-domain-name', 'specweb', '-videoram', '4', '-vnc', '0.0.0.0:0,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cd', '-acpi', '-net', 'none', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.4']
+[2011-05-30 01:34:50,997 6906] INFO (image:467) device model pid: 7129
+[2011-05-30 01:34:50,999 6906] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 01:34:51,484 6906] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 01:34:51,498 6906] INFO (pciquirk:92) NO quirks found for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 01:34:51,545 6906] INFO (pciquirk:92) NO quirks found for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 01:44:58,63 6906] INFO (XendCheckpoint:429) xc_save: failed to get the suspend evtchn port
+[2011-05-30 01:44:58,64 6906] INFO (XendCheckpoint:429) 
+[2011-05-30 01:45:12,929 6906] INFO (XendDomainInfo:546) HVM save:remote shutdown dom 4!
+[2011-05-30 01:45:12,934 6906] INFO (XendCheckpoint:138) Domain 4 suspended.
+[2011-05-30 01:45:12,935 6906] INFO (XendDomainInfo:2083) Domain has shutdown: name=migrating-specweb id=4 reason=suspend.
+[2011-05-30 01:45:13,42 6906] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 01:45:14,472 6906] INFO (image:615) migrating-specweb device model terminated
+[2011-05-30 02:17:41,528 6906] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': '84d736bc-62e0-0342-823a-d93742be1816'}
+[2011-05-30 02:17:41,537 6906] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1'}, 'vnc': '1', 'uuid': '752d85db-a9a6-2bb0-cb60-27a84076c766', 'vnclisten': '0.0.0.0', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5900'}
+[2011-05-30 02:17:41,546 6906] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': '869c5c04-e3af-ce87-78db-9e6a16bec7f8', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/specweb.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 02:17:41,555 6906] INFO (XendDomainInfo:2362) createDevice: vif : {'bridge': 'xenbr0', 'uuid': 'eb0e7c46-87c1-8a31-a438-bbec120530e7', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:0a:07:3f', 'type': 'netfront', 'backend': '0'}
+[2011-05-30 02:17:41,612 6906] INFO (XendCheckpoint:263) restore hvm domain 5, apic=1, pae=1
+[2011-05-30 02:17:41,650 6906] INFO (image:822) Need to create platform device.[domid:5]
+[2011-05-30 02:17:56,940 6906] INFO (image:822) Need to create platform device.[domid:5]
+[2011-05-30 02:17:56,946 6906] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '5', '-domain-name', 'specweb', '-videoram', '4', '-vnc', '0.0.0.0:0,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cd', '-acpi', '-net', 'none', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.5']
+[2011-05-30 02:17:56,954 6906] INFO (image:467) device model pid: 12799
+[2011-05-30 02:17:56,956 6906] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 02:19:42,350 6906] INFO (XendCheckpoint:429) xc_save: failed to get the suspend evtchn port
+[2011-05-30 02:19:42,351 6906] INFO (XendCheckpoint:429) 
+[2011-05-30 02:19:57,874 6906] INFO (XendDomainInfo:2083) Domain has shutdown: name=migrating-specweb id=5 reason=suspend.
+[2011-05-30 02:19:57,900 6906] INFO (XendCheckpoint:138) Domain 5 suspended.
+[2011-05-30 02:19:58,106 6906] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 02:19:58,436 6906] INFO (image:615) migrating-specweb device model terminated
+[2011-05-30 02:27:01,935 6906] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': '84d736bc-62e0-0342-823a-d93742be1816'}
+[2011-05-30 02:27:01,944 6906] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1'}, 'vnc': '1', 'uuid': '752d85db-a9a6-2bb0-cb60-27a84076c766', 'vnclisten': '0.0.0.0', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5900'}
+[2011-05-30 02:27:01,957 6906] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': '869c5c04-e3af-ce87-78db-9e6a16bec7f8', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/specweb.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 02:27:01,970 6906] INFO (XendDomainInfo:2362) createDevice: vif : {'bridge': 'xenbr0', 'uuid': 'eb0e7c46-87c1-8a31-a438-bbec120530e7', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:0a:07:3f', 'type': 'netfront', 'backend': '0'}
+[2011-05-30 02:27:02,19 6906] INFO (XendCheckpoint:263) restore hvm domain 6, apic=1, pae=1
+[2011-05-30 02:27:02,34 6906] INFO (image:822) Need to create platform device.[domid:6]
+[2011-05-30 02:27:19,516 6906] INFO (image:822) Need to create platform device.[domid:6]
+[2011-05-30 02:27:19,522 6906] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '6', '-domain-name', 'specweb', '-videoram', '4', '-vnc', '0.0.0.0:0,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cd', '-acpi', '-net', 'none', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.6']
+[2011-05-30 02:27:19,530 6906] INFO (image:467) device model pid: 14055
+[2011-05-30 02:27:19,532 6906] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 02:35:55,576 6906] INFO (XendCheckpoint:429) xc_save: failed to get the suspend evtchn port
+[2011-05-30 02:35:55,577 6906] INFO (XendCheckpoint:429) 
+[2011-05-30 02:36:11,782 6906] INFO (XendDomainInfo:2083) Domain has shutdown: name=migrating-specweb id=6 reason=suspend.
+[2011-05-30 02:36:11,812 6906] INFO (XendCheckpoint:138) Domain 6 suspended.
+[2011-05-30 02:36:12,19 6906] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 02:36:12,379 6906] INFO (image:615) migrating-specweb device model terminated
+[2011-05-30 02:46:39,513 6906] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': '0a685aed-74d8-6e97-ff98-01e09de40645'}
+[2011-05-30 02:46:39,523 6906] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1'}, 'vnc': '1', 'uuid': 'e061d655-a495-9627-64b9-beb275bf74cd', 'vnclisten': '0.0.0.0', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5900'}
+[2011-05-30 02:46:39,532 6906] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': '2426c803-86d6-baf2-9b85-9ea805a813e0', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/specweb.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 02:46:39,542 6906] INFO (XendDomainInfo:2362) createDevice: pci : {'devs': [{'slot': '0x10', 'domain': '0x0000', 'func': '0x0', 'bus': '0x05', 'shared_gfn': '247406', 'vdevfn': '0x20', 'key': '05:10.0', 'opts': [['msitranslate', '1'], ['power_mgmt', '0']], 'uuid': 'bff56e01-a4c5-5c01-3fc7-21fbea7e371a'}], 'uuid': 'ff2ea6da-d10c-9df8-9a4d-7ca9385b675b'}
+[2011-05-30 02:46:40,653 6906] INFO (XendCheckpoint:263) restore hvm domain 7, apic=1, pae=1
+[2011-05-30 02:46:40,662 6906] INFO (image:822) Need to create platform device.[domid:7]
+[2011-05-30 02:46:54,526 6906] INFO (image:822) Need to create platform device.[domid:7]
+[2011-05-30 02:46:54,532 6906] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '7', '-domain-name', 'specweb', '-videoram', '4', '-vnc', '0.0.0.0:0,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cd', '-acpi', '-net', 'none', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.7']
+[2011-05-30 02:46:54,540 6906] INFO (image:467) device model pid: 14813
+[2011-05-30 02:46:54,542 6906] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 02:46:55,31 6906] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 02:46:55,44 6906] INFO (pciquirk:92) NO quirks found for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 02:46:55,85 6906] INFO (pciquirk:92) NO quirks found for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 02:52:18,157 6906] INFO (XendDomainInfo:2083) Domain has shutdown: name=specweb id=7 reason=poweroff.
+[2011-05-30 02:52:19,568 6906] INFO (image:615) specweb device model terminated
+[2011-05-30 18:22:54,496 6906] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': 'f55cba3f-9c1f-2f22-2e3d-f2c5f7649904'}
+[2011-05-30 18:22:54,506 6906] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1', 'vncdisplay': '1'}, 'vnc': '1', 'uuid': '1dfd84a6-429e-dd32-6bd1-b1fd2aa09451', 'vnclisten': '0.0.0.0', 'vncdisplay': '1', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5901'}
+[2011-05-30 18:22:54,516 6906] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': '8bb6a069-7384-4140-e125-660e1b71aee5', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/spec-server/disk.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 18:22:54,527 6906] INFO (XendDomainInfo:2362) createDevice: vif : {'bridge': 'xenbr0', 'uuid': '550c4bb3-a433-c180-9e15-a60403376a17', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:5e:3f:a7', 'model': 'e1000', 'type': 'ioemu', 'backend': '0'}
+[2011-05-30 18:22:54,578 6906] INFO (XendCheckpoint:263) restore hvm domain 8, apic=1, pae=1
+[2011-05-30 18:22:54,669 6906] INFO (image:822) Need to create platform device.[domid:8]
+[2011-05-30 18:23:09,446 6906] INFO (image:822) Need to create platform device.[domid:8]
+[2011-05-30 18:23:09,453 6906] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '8', '-domain-name', 'spec-server', '-videoram', '4', '-vnc', '0.0.0.0:1,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cda', '-acpi', '-net', 'nic,vlan=1,macaddr=00:16:3e:5e:3f:a7,model=e1000', '-net', 'tap,vlan=1,ifname=tap8.0,bridge=xenbr0', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.8']
+[2011-05-30 18:23:09,461 6906] INFO (image:467) device model pid: 15251
+[2011-05-30 18:23:09,463 6906] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 18:24:15,380 6906] INFO (image:615) spec-server device model terminated
+[2011-05-30 18:26:17,741 6906] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': '4e922e30-9d8f-5b2e-7698-cc89c3b77cb6'}
+[2011-05-30 18:26:17,750 6906] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1', 'vncdisplay': '1'}, 'vnc': '1', 'uuid': '633404d0-9d85-3c35-1233-0c607faece49', 'vnclisten': '0.0.0.0', 'vncdisplay': '1', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5901'}
+[2011-05-30 18:26:17,760 6906] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': '8b69caaf-94bd-11d4-e8b2-bba3207fa408', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/spec-server/disk.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 18:26:17,770 6906] INFO (XendDomainInfo:2362) createDevice: vif : {'bridge': 'xenbr0', 'uuid': '917d87e4-f2c9-50ae-1111-4f3eb05a9476', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:30:3e:b0', 'model': 'e1000', 'type': 'ioemu', 'backend': '0'}
+[2011-05-30 18:26:17,815 6906] INFO (XendCheckpoint:263) restore hvm domain 9, apic=1, pae=1
+[2011-05-30 18:26:17,833 6906] INFO (image:822) Need to create platform device.[domid:9]
+[2011-05-30 18:26:32,825 6906] INFO (image:822) Need to create platform device.[domid:9]
+[2011-05-30 18:26:32,832 6906] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '9', '-domain-name', 'spec-server', '-videoram', '4', '-vnc', '0.0.0.0:1,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cda', '-acpi', '-net', 'nic,vlan=1,macaddr=00:16:3e:30:3e:b0,model=e1000', '-net', 'tap,vlan=1,ifname=tap9.0,bridge=xenbr0', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.9']
+[2011-05-30 18:26:32,841 6906] INFO (image:467) device model pid: 15640
+[2011-05-30 18:26:32,844 6906] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 18:28:10,86 6906] INFO (image:615) spec-server device model terminated
+[2011-05-30 18:40:48,544 6906] INFO (XendDomainInfo:2362) createDevice: console : {'protocol': 'vt100', 'location': '6', 'uuid': '9ec49fb7-731e-7834-28e2-8be233b9df04'}
+[2011-05-30 18:40:48,553 6906] INFO (XendDomainInfo:2362) createDevice: vfb : {'vncunused': '1', 'other_config': {'vncunused': '1', 'vncpasswd': 'XXXXXXXX', 'vnclisten': '0.0.0.0', 'vnc': '1', 'vncdisplay': '1'}, 'vnc': '1', 'uuid': '2e56ebfa-2bef-7717-397c-03f275bfa562', 'vnclisten': '0.0.0.0', 'vncdisplay': '1', 'vncpasswd': 'XXXXXXXX', 'location': '0.0.0.0:5901'}
+[2011-05-30 18:40:48,563 6906] INFO (XendDomainInfo:2362) createDevice: vbd : {'uuid': 'd73dc95a-80b1-73e0-8f09-37226d1dc3c8', 'bootable': 1, 'driver': 'paravirtualised', 'dev': 'hda:disk', 'uname': 'file:/image/spec-server/disk.img', 'mode': 'w', 'VDI': '', 'backend': '0'}
+[2011-05-30 18:40:48,573 6906] INFO (XendDomainInfo:2362) createDevice: vif : {'bridge': 'xenbr0', 'uuid': '6c641dad-353c-eb4d-e042-6cff1eddc588', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:4d:a5:b3', 'model': 'e1000', 'type': 'ioemu', 'backend': '0'}
+[2011-05-30 18:40:48,613 6906] INFO (XendCheckpoint:263) restore hvm domain 10, apic=1, pae=1
+[2011-05-30 18:40:48,629 6906] INFO (image:822) Need to create platform device.[domid:10]
+[2011-05-30 18:41:03,696 6906] INFO (image:822) Need to create platform device.[domid:10]
+[2011-05-30 18:41:03,703 6906] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '10', '-domain-name', 'spec-server', '-videoram', '4', '-vnc', '0.0.0.0:1,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xfL', '-boot', 'cda', '-acpi', '-net', 'nic,vlan=1,macaddr=00:16:3e:4d:a5:b3,model=e1000', '-net', 'tap,vlan=1,ifname=tap10.0,bridge=xenbr0', '-M', 'xenfv', '-loadvm', '/var/lib/xen/qemu-resume.10']
+[2011-05-30 18:41:03,712 6906] INFO (image:467) device model pid: 16043
+[2011-05-30 18:41:03,720 6906] INFO (image:590) waiting for sentinel_fifo

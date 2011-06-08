@@ -1,0 +1,100 @@
+[2011-05-30 18:28:15,52 1284] DEBUG (DevController:97) DevController: writing {'domain': 'spec-server', 'frontend': '/local/domain/32/device/vbd/768', 'uuid': 'd73dc95a-80b1-73e0-8f09-37226d1dc3c8', 'bootable': '1', 'dev': 'hda', 'state': '1', 'params': '/image/spec-server/disk.img', 'mode': 'w', 'online': '1', 'frontend-id': '32', 'type': 'file'} to /local/domain/0/backend/vbd/32/768.
+[2011-05-30 18:28:15,62 1284] INFO (XendDomainInfo:2362) createDevice: vif : {'bridge': 'xenbr0', 'model': 'e1000', 'type': 'ioemu', 'mac': '00:16:3e:4d:a5:b3', 'uuid': '6c641dad-353c-eb4d-e042-6cff1eddc588'}
+[2011-05-30 18:28:15,67 1284] DEBUG (DevController:95) DevController: writing {'state': '1', 'backend-id': '0', 'backend': '/local/domain/0/backend/vif/32/0'} to /local/domain/32/device/vif/0.
+[2011-05-30 18:28:15,68 1284] DEBUG (DevController:97) DevController: writing {'bridge': 'xenbr0', 'domain': 'spec-server', 'handle': '0', 'uuid': '6c641dad-353c-eb4d-e042-6cff1eddc588', 'script': '/etc/xen/scripts/vif-bridge', 'mac': '00:16:3e:4d:a5:b3', 'frontend-id': '32', 'state': '1', 'online': '1', 'frontend': '/local/domain/32/device/vif/0', 'model': 'e1000', 'type': 'ioemu'} to /local/domain/0/backend/vif/32/0.
+[2011-05-30 18:28:15,89 1284] INFO (XendDomainInfo:2362) createDevice: pci : {'devs': [{'slot': '0x10', 'domain': '0x0000', 'key': '05:10.0', 'bus': '0x05', 'vdevfn': '0x100', 'func': '0x0', 'uuid': 'ea317de5-c4c0-b7e3-3fb8-59f7b9f092da'}], 'uuid': '6ec98215-721e-4a4e-46ec-601723aa57e7'}
+[2011-05-30 18:28:16,200 1284] INFO (image:418) spawning device models: /usr/lib/xen/bin/qemu-dm ['/usr/lib/xen/bin/qemu-dm', '-d', '32', '-domain-name', 'spec-server', '-videoram', '4', '-vnc', '0.0.0.0:1,password', '-vncunused', '-vcpus', '4', '-vcpu_avail', '0xf', '-boot', 'cda', '-acpi', '-net', 'nic,vlan=1,macaddr=00:16:3e:4d:a5:b3,model=e1000', '-net', 'tap,vlan=1,ifname=tap32.0,bridge=xenbr0', '-M', 'xenfv']
+[2011-05-30 18:28:16,210 1284] INFO (image:467) device model pid: 15216
+[2011-05-30 18:28:16,213 1284] INFO (image:590) waiting for sentinel_fifo
+[2011-05-30 18:28:16,214 1284] DEBUG (XendDomainInfo:898) XendDomainInfo.pci_device_configure: ['pci', ['dev', ['slot', '0x10'], ['domain', '0x0000'], ['key', '05:10.0'], ['bus', '0x05'], ['vdevfn', '0x100'], ['func', '0x0'], ['uuid', 'ea317de5-c4c0-b7e3-3fb8-59f7b9f092da']], ['state', 'Initialising'], ['sub_state', 'Booting']]
+[2011-05-30 18:28:16,217 1284] DEBUG (XendDomainInfo:784) XendDomainInfo.hvm_pci_device_insert: {'devs': [{'slot': '0x10', 'domain': '0x0000', 'key': '05:10.0', 'bus': '0x05', 'vdevfn': '0x100', 'func': '0x0', 'uuid': 'ea317de5-c4c0-b7e3-3fb8-59f7b9f092da'}], 'states': ['Initialising']}
+[2011-05-30 18:28:16,221 1284] DEBUG (XendDomainInfo:795) XendDomainInfo.hvm_pci_device_insert_dev: {'slot': '0x10', 'domain': '0x0000', 'key': '05:10.0', 'bus': '0x05', 'vdevfn': '0x100', 'func': '0x0', 'uuid': 'ea317de5-c4c0-b7e3-3fb8-59f7b9f092da'}
+[2011-05-30 18:28:16,223 1284] DEBUG (XendDomainInfo:816) XendDomainInfo.hvm_pci_device_insert_dev: 0000:05:10.0@100,msitranslate=1,power_mgmt=0
+[2011-05-30 18:28:16,397 1284] DEBUG (XendDomainInfo:820) pci: assign device 0000:05:10.0@100,msitranslate=1,power_mgmt=0
+[2011-05-30 18:28:16,400 1284] DEBUG (image:508) signalDeviceModel: orig_state is None, retrying
+[2011-05-30 18:28:16,707 1284] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 18:28:16,720 1284] INFO (pciquirk:92) NO quirks found for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 18:28:16,723 1284] DEBUG (pciquirk:135) Permissive mode NOT enabled for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 18:28:16,724 1284] DEBUG (pciif:337) pci: enabling iomem 0xf7000000/0x4000 pfn 0xf7000/0x4
+[2011-05-30 18:28:16,726 1284] DEBUG (pciif:337) pci: enabling iomem 0xf7020000/0x4000 pfn 0xf7020/0x4
+[2011-05-30 18:28:16,727 1284] DEBUG (pciif:459) pci: register aer watch /local/domain/0/backend/pci/32/0/aerState
+[2011-05-30 18:28:16,729 1284] DEBUG (DevController:95) DevController: writing {'state': '1', 'backend-id': '0', 'backend': '/local/domain/0/backend/pci/32/0'} to /local/domain/32/device/pci/0.
+[2011-05-30 18:28:16,731 1284] DEBUG (DevController:97) DevController: writing {'domain': 'spec-server', 'key-0': '05:10.0', 'vdevfn-0': '100', 'uuid': '6ec98215-721e-4a4e-46ec-601723aa57e7', 'frontend-id': '32', 'dev-0': '0000:05:10.0', 'state': '1', 'online': '1', 'frontend': '/local/domain/32/device/pci/0', 'num_devs': '1', 'uuid-0': 'ea317de5-c4c0-b7e3-3fb8-59f7b9f092da', 'opts-0': 'msitranslate=1,power_mgmt=0'} to /local/domain/0/backend/pci/32/0.
+[2011-05-30 18:28:16,749 1284] DEBUG (pciif:171) Reconfiguring PCI device 0000:05:10.0.
+[2011-05-30 18:28:16,761 1284] INFO (pciquirk:92) NO quirks found for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 18:28:16,764 1284] DEBUG (pciquirk:135) Permissive mode NOT enabled for PCI device [8086:10ca:8086:a03c]
+[2011-05-30 18:28:16,765 1284] DEBUG (pciif:337) pci: enabling iomem 0xf7000000/0x4000 pfn 0xf7000/0x4
+[2011-05-30 18:28:16,767 1284] DEBUG (pciif:337) pci: enabling iomem 0xf7020000/0x4000 pfn 0xf7020/0x4
+[2011-05-30 18:28:16,789 1284] DEBUG (pciif:626) Gfn found on 0000:05:10.0: 0
+[2011-05-30 18:28:16,794 1284] DEBUG (XendDomainInfo:3443) Storing VM details: {'on_xend_stop': 'ignore', 'pool_name': 'Pool-0', 'shadow_memory': '12', 'uuid': 'dcae78e6-e57f-9a15-fdbb-1d59f2146fdd', 'on_reboot': 'restart', 'start_time': '1306751296.79', 'on_poweroff': 'destroy', 'bootloader_args': '', 'on_xend_start': 'ignore', 'on_crash': 'restart', 'xend/restart_count': '0', 'vcpus': '4', 'vcpu_avail': '15', 'bootloader': '', 'image': "(hvm (kernel '') (superpages 0) (videoram 4) (hpet 0) (stdvga 0) (vnclisten 0.0.0.0) (loader /usr/lib/xen/boot/hvmloader) (xen_platform_pci 1) (rtc_timeoffset 0) (pci ((0x0000 0x05 0x10 0x0 0x100 ()))) (hap 1) (localtime 0) (timer_mode 1) (vncdisplay 1) (pci_msitranslate 1) (oos 1) (apic 1) (vpt_align 1) (vncunused 1) (boot cda) (vncpasswd XXXXXX) (pae 1) (viridian 0) (acpi 1) (vnc 1) (nographic 0) (nomigrate 0) (usb 0) (tsc_mode 0) (guest_os_type default) (device_model /usr/lib/xen/bin/qemu-dm) (pci_power_mgmt 0) (xauthority /root/.Xauthority) (isa 0) (notes (SUSPEND_CANCEL 1)))", 'name': 'spec-server'}
+[2011-05-30 18:28:16,801 1284] DEBUG (XendDomainInfo:1799) Storing domain details: {'console/port': '6', 'cpu/3/availability': 'online', 'description': '', 'console/limit': '1048576', 'store/port': '5', 'cpu/2/availability': 'online', 'vm': '/vm/dcae78e6-e57f-9a15-fdbb-1d59f2146fdd', 'domid': '32', 'image/suspend-cancel': '1', 'cpu/0/availability': 'online', 'memory/target': '1048576', 'control/platform-feature-multiprocessor-suspend': '1', 'store/ring-ref': '1044476', 'cpu/1/availability': 'online', 'console/type': 'ioemu', 'name': 'spec-server'}
+[2011-05-30 18:28:16,825 1284] DEBUG (DevController:95) DevController: writing {'state': '1', 'backend-id': '0', 'backend': '/local/domain/0/backend/console/32/0'} to /local/domain/32/device/console/0.
+[2011-05-30 18:28:16,826 1284] DEBUG (DevController:97) DevController: writing {'domain': 'spec-server', 'frontend': '/local/domain/32/device/console/0', 'uuid': '9ec49fb7-731e-7834-28e2-8be233b9df04', 'frontend-id': '32', 'state': '1', 'location': '6', 'online': '1', 'protocol': 'vt100'} to /local/domain/0/backend/console/32/0.
+[2011-05-30 18:28:16,839 1284] DEBUG (pciif:463) XendDomainInfo.handleAerStateWatch
+[2011-05-30 18:28:16,845 1284] DEBUG (XendDomainInfo:1886) XendDomainInfo.handleShutdownWatch
+[2011-05-30 18:28:16,856 1284] DEBUG (pciif:626) Gfn found on 0000:05:10.0: 0
+[2011-05-30 18:28:16,876 1284] DEBUG (DevController:139) Waiting for devices tap2.
+[2011-05-30 18:28:16,883 1284] DEBUG (DevController:139) Waiting for devices vif.
+[2011-05-30 18:28:16,888 1284] DEBUG (DevController:144) Waiting for 0.
+[2011-05-30 18:28:16,890 1284] DEBUG (DevController:633) hotplugStatusCallback /local/domain/0/backend/vif/32/0/hotplug-status.
+[2011-05-30 18:28:16,892 1284] DEBUG (DevController:647) hotplugStatusCallback 1.
+[2011-05-30 18:28:16,896 1284] DEBUG (DevController:139) Waiting for devices vkbd.
+[2011-05-30 18:28:16,898 1284] DEBUG (DevController:139) Waiting for devices ioports.
+[2011-05-30 18:28:16,901 1284] DEBUG (DevController:139) Waiting for devices tap.
+[2011-05-30 18:28:16,904 1284] DEBUG (DevController:139) Waiting for devices vif2.
+[2011-05-30 18:28:16,906 1284] DEBUG (DevController:139) Waiting for devices console.
+[2011-05-30 18:28:16,909 1284] DEBUG (DevController:144) Waiting for 0.
+[2011-05-30 18:28:16,911 1284] DEBUG (DevController:139) Waiting for devices vscsi.
+[2011-05-30 18:28:16,913 1284] DEBUG (DevController:139) Waiting for devices vbd.
+[2011-05-30 18:28:16,916 1284] DEBUG (DevController:144) Waiting for 768.
+[2011-05-30 18:28:16,918 1284] DEBUG (DevController:633) hotplugStatusCallback /local/domain/0/backend/vbd/32/768/hotplug-status.
+[2011-05-30 18:28:16,919 1284] DEBUG (DevController:647) hotplugStatusCallback 1.
+[2011-05-30 18:28:16,923 1284] DEBUG (DevController:139) Waiting for devices irq.
+[2011-05-30 18:28:16,925 1284] DEBUG (DevController:139) Waiting for devices vfb.
+[2011-05-30 18:28:16,928 1284] DEBUG (DevController:139) Waiting for devices pci.
+[2011-05-30 18:28:16,931 1284] DEBUG (DevController:144) Waiting for 0.
+[2011-05-30 18:28:16,933 1284] DEBUG (DevController:139) Waiting for devices vusb.
+[2011-05-30 18:28:16,935 1284] DEBUG (DevController:139) Waiting for devices vtpm.
+[2011-05-30 18:28:16,938 1284] INFO (XendDomain:1225) Domain spec-server (32) unpaused.
+[2011-05-30 18:40:47,91 1284] DEBUG (XendDomainInfo:898) XendDomainInfo.pci_device_configure: ['pci', ['dev', ['slot', '0x10'], ['domain', '0x0000'], ['key', '0:5:10.0'], ['bus', '0x05'], ['vdevfn', '0x100'], ['func', '0x0']], ['state', 'Closing']]
+[2011-05-30 18:40:47,97 1284] DEBUG (XendDomainInfo:1245) hvm_destroyPCIDevice: {'slot': '0x10', 'domain': '0x0000', 'key': '05:10.0', 'bus': '0x05', 'shared_gfn': '0', 'vdevfn': '0x28', 'func': '0x0', 'opts': [['msitranslate', '1'], ['power_mgmt', '0']], 'uuid': 'ea317de5-c4c0-b7e3-3fb8-59f7b9f092da'}
+[2011-05-30 18:40:47,106 1284] INFO (XendDomainInfo:1273) hvm_destroyPCIDevice:{'slot': '0x10', 'domain': '0x0000', 'key': '05:10.0', 'bus': '0x05', 'shared_gfn': '0', 'vdevfn': '0x28', 'func': '0x0', 'opts': [['msitranslate', '1'], ['power_mgmt', '0']], 'uuid': 'ea317de5-c4c0-b7e3-3fb8-59f7b9f092da'}:0000:05:10.0!
+[2011-05-30 18:40:47,415 1284] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 18:40:47,420 1284] DEBUG (pciif:196) Detaching device 0000:05:10.0
+[2011-05-30 18:40:48,587 1284] DEBUG (pciif:499) pci: Deassign device 0000:05:10.0
+[2011-05-30 18:40:48,589 1284] DEBUG (pciif:516) pci: disabling iomem 0xf7000000/0x4000 pfn 0xf7000/0x4
+[2011-05-30 18:40:48,592 1284] DEBUG (pciif:516) pci: disabling iomem 0xf7020000/0x4000 pfn 0xf7020/0x4
+[2011-05-30 18:40:48,616 1284] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = pci, device = 0
+[2011-05-30 18:40:48,623 1284] DEBUG (pciif:463) XendDomainInfo.handleAerStateWatch
+[2011-05-30 18:40:48,631 1284] DEBUG (pciif:581) pci: unregister aer watch
+[2011-05-30 18:40:48,801 1284] DEBUG (XendCheckpoint:124) [xc_save]: /usr/lib/xen/bin/xc_save 23 32 0 0 5
+[2011-05-30 18:40:48,820 1284] INFO (XendCheckpoint:429) xc_save: failed to get the suspend evtchn port
+[2011-05-30 18:40:48,821 1284] INFO (XendCheckpoint:429) 
+[2011-05-30 18:41:03,674 1284] DEBUG (XendCheckpoint:400) suspend
+[2011-05-30 18:41:03,677 1284] DEBUG (XendCheckpoint:127) In saveInputHandler suspend
+[2011-05-30 18:41:03,680 1284] DEBUG (XendCheckpoint:129) Suspending 32 ...
+[2011-05-30 18:41:03,682 1284] DEBUG (XendDomainInfo:527) XendDomainInfo.shutdown(suspend)
+[2011-05-30 18:41:03,685 1284] DEBUG (XendDomainInfo:1886) XendDomainInfo.handleShutdownWatch
+[2011-05-30 18:41:03,688 1284] INFO (XendDomainInfo:546) HVM save:remote shutdown dom 32!
+[2011-05-30 18:41:03,691 1284] INFO (XendDomainInfo:2083) Domain has shutdown: name=migrating-spec-server id=32 reason=suspend.
+[2011-05-30 18:41:03,692 1284] INFO (XendCheckpoint:138) Domain 32 suspended.
+[2011-05-30 18:41:03,902 1284] INFO (image:538) signalDeviceModel:restore dm state to running
+[2011-05-30 18:41:03,907 1284] DEBUG (XendCheckpoint:147) Written done
+[2011-05-30 18:41:03,942 1284] DEBUG (XendDomainInfo:3094) XendDomainInfo.destroy: domid=32
+[2011-05-30 18:41:04,128 1284] DEBUG (XendDomainInfo:2407) Destroying device model
+[2011-05-30 18:41:04,231 1284] INFO (image:615) migrating-spec-server device model terminated
+[2011-05-30 18:41:04,232 1284] DEBUG (XendDomainInfo:2414) Releasing devices
+[2011-05-30 18:41:04,234 1284] DEBUG (XendDomainInfo:2420) Removing vif/0
+[2011-05-30 18:41:04,237 1284] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vif, device = vif/0
+[2011-05-30 18:41:04,241 1284] DEBUG (XendDomainInfo:2420) Removing console/0
+[2011-05-30 18:41:04,241 1284] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = console, device = console/0
+[2011-05-30 18:41:04,250 1284] DEBUG (XendDomainInfo:2420) Removing vbd/768
+[2011-05-30 18:41:04,251 1284] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vbd, device = vbd/768
+[2011-05-30 18:41:04,256 1284] DEBUG (XendDomainInfo:2420) Removing vfb/0
+[2011-05-30 18:41:04,257 1284] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vfb, device = vfb/0
+[2011-05-30 18:41:04,277 1284] DEBUG (XendDomainInfo:2412) No device model
+[2011-05-30 18:41:04,280 1284] DEBUG (XendDomainInfo:2414) Releasing devices
+[2011-05-30 18:41:04,284 1284] DEBUG (XendDomainInfo:2420) Removing vif/0
+[2011-05-30 18:41:04,287 1284] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vif, device = vif/0
+[2011-05-30 18:41:04,290 1284] DEBUG (XendDomainInfo:2420) Removing vbd/768
+[2011-05-30 18:41:04,292 1284] DEBUG (XendDomainInfo:1281) XendDomainInfo.destroyDevice: deviceClass = vbd, device = vbd/768
