@@ -1,0 +1,577 @@
+------------------------------------------------
+- Lab work
+------------------------------------------------
+
+#+STARTUP: overview
+
+* Paper
+** System会议
+*** 顶级会议
+**** OSDI
+**** SOSP
+**** InfoCom
+*** 次级会议
+**** USENIX
+**** EuroSys
+**** Euro-Par
+** Architecture会议
+*** 顶级会议
+**** ASPLOS
+***** ASPLOS09
+****** SESSION: Lessons learned and looking ahead
+	  	An evaluation of the TRIPS computer system
+    	Architectural implications of nanoscale integrated sensing and computing
+****** SESSION: Reliable systems I
+    	CTrigger: exposing atomicity violation bugs from their hiding places
+    	ASSURE: automatic software self-healing using rescue points
+    	Recovery domains: an organizing principle for recoverable operating systems
+    	Anomaly-based bug prediction, isolation, and validation: an automated approach for software debugging
+****** SESSION: Deterministic multiprocessing
+    	Capo: a software-hardware interface for practical deterministic multiprocessor replay
+    	DMP: deterministic shared memory multiprocessing
+    	Kendo: efficient deterministic multithreading in software
+****** SESSION: Prediction and accounting
+    	Complete information flow tracking from the gates up
+    	RapidMRC: approximating L2 miss rate curves on commodity systems for online optimizations
+    	Per-thread cycle accounting in SMT processors
+****** SESSION: Transactional memories
+    	Maximum benefit from a minimal HTM
+    	Early experience with a commercial hardware transactional memory implementation
+****** SESSION: Reliable systems II
+    	Mixed-mode multicore reliability
+    	ISOLATOR: dynamically ensuring isolation in comcurrent programs
+    	Efficient online validation with delta execution
+****** SESSION: Power and storage in enterprise systems
+    	PowerNap: eliminating server idle power
+    	Gordon: using flash memory to build fast, power-efficient clusters for data-intensive applications
+    	DFTL: a flash translation layer employing demand-based selective caching of page-level address mappings
+****** SESSION: Potpourri
+    	Commutativity analysis for software parallelization: letting program transformations see the big picture
+    	Accelerating critical section execution with asymmetric multi-core architectures
+    	Producing wrong data without doing anything obviously wrong!
+****** SESSION: Managed systems
+    	Leak pruning
+    	Dynamic prediction of collection yield for managed runtimes
+    	TwinDrivers: semi-automatic derivation of fast and safe hypervisor network drivers from guest OS drivers
+****** SESSION: Architectures
+    	Phantom-BTB: a virtualized branch target buffer design
+    	StreamRay: a stream filtering architecture for coherent ray tracing
+    	Architectural support for SWAR text processing with parallel bit streams: the inductive doubling principle
+***** ASPLOS XIII
+	  http://portal.acm.org/toc.cfm?id=1346281&coll=GUIDE&dl=GUIDE&type=proceeding&idx=SERIES311&part=series&WantType=Proceedings&title=ASPLOS&CFID=65742060&CFTOKEN=34044427
+****** SESSION: Virtualization
+    	Overshadow: a virtualization-based approach to retrofitting protection in commodity operating systems
+    	How low can you go?: recommendations for hardware-supported minimal TCB code execution
+    	Accelerating two-dimensional page walks for virtualized systems
+****** SESSION: Power
+    	Efficiency trends and limits from comprehensive microarchitectural adaptivity
+    	No "power" struggles: coordinated multi-level power management for the data center
+    	Exploiting access semantics and program behavior to reduce snoop power in chip multiprocessors
+    	PICSEL: measuring user-perceived performance to control dynamic frequency scaling
+****** SESSION: Programming
+    	Improving the performance of object-oriented languages with dynamic predication of indirect jumps
+    	The mapping collector: virtual memory support for generational, parallel, and concurrent compaction
+    	Hardbound: architectural support for spatial safety of the C programming language
+    	Archipelago: trading address space for reliability and security
+****** SESSION: Microarchitecture
+    	Accurate branch prediction for short threads
+    	Adaptive set pinning: managing shared caches in chip multiprocessors
+    	SoftSig: software-exposed hardware signatures for code analysis and optimization
+    	Predictor virtualization
+****** SESSION: Performance
+    	The design and implementation of microdrivers
+    	Tapping into the fountain of CPUs: on operating system support for programmable devices
+****** SESSION: OS
+    	Hardware counter driven on-the-fly request signatures
+    	Dispersing proprietary applications as benchmarks through code mutation
+    	Understanding and visualizing full systems with data flow tomography
+****** SESSION: Compiler
+    	Communication optimizations for global multi-threaded instruction scheduling
+    	Optimistic parallelism benefits from data partitioning
+    	Xoc, an extension-oriented compiler for systems programming
+****** SESSION: Fault tolerance
+    	Adapting to intermittent faults in multicore systems
+    	Understanding the propagation of hard errors to software and implications for resilient system design
+****** SESSION: Parallelism
+    	Feedback-driven threading: power-efficient and high-performance execution of multi-threaded workloads on CMPs
+    	Merge: a programming model for heterogeneous multi-core systems
+    	Streamware: programming general-purpose multicore processors using streams
+****** SESSION: Security & bugs
+    	Parallelizing security checks on commodity hardware
+    	Better bug reporting with better privacy
+    	Learning from mistakes: a comprehensive study on real world concurrency bug characteristics 
+***** ASPLOS XII
+	  http://portal.acm.org/toc.cfm?id=1168857&coll=GUIDE&dl=GUIDE&type=proceeding&idx=SERIES311&part=series&WantType=Proceedings&title=ASPLOS&CFID=65742060&CFTOKEN=34044427
+****** SESSION: Virtualization
+    	A comparison of software and hardware techniques for x86 virtualization
+    	Geiger: monitoring the buffer cache in a virtual machine environment
+    	Temporal search: detecting hidden malware timebombs with virtual machines
+****** SESSION: Races and memory debugging I
+    	AVIO: detecting atomicity violations via access interleaving invariants
+    	A regulated transitive reduction (RTR) for longer memory race recording
+    	Bell: bit-encoding online memory leak detection
+****** SESSION: Hardware reliability and fault tolerance
+    	Ultra low-cost defect protection for microprocessor pipelines
+    	Understanding prediction-based partial redundant threading for low-overhead, high- coverage fault tolerance
+    	SlicK: slice-based locality exploitation for efficient redundant multithreading
+****** SESSION: Energy efficiency
+    	Mercury and freon: temperature emulation and management for server systems
+    	PicoServer: using 3D stacking technology to enable a compact energy efficient chip multiprocessor
+****** SESSION: Scheduling and spatial programming
+    	A spatial path scheduling algorithm for EDGE architectures
+    	Instruction scheduling for a tiled dataflow architecture
+    	Exploiting coarse-grained task, data, and pipeline parallelism in stream programs
+    	Tartan: evaluating spatial computation for whole program execution
+****** SESSION: Estimation and prediction of power and performance
+    	A performance counter architecture for computing accurate CPI components
+    	Accurate and efficient regression modeling for microarchitectural performance and power prediction
+    	Efficiently exploring architectural design spaces via predictive modeling
+****** SESSION: Races and memory debugging II
+    	Comprehensively and efficiently protecting the heap
+    	HeapMD: identifying heap-based bugs using anomaly detection
+    	Recording shared memory dependencies using strata
+****** SESSION: Emerging technologies
+    	A defect tolerant self-organizing nanoscale SIMD architecture
+    	A program transformation and architecture support for quantum uncomputation
+    	Introspective 3D chips
+****** SESSION: Memory and locality issues
+    	Stealth prefetching
+    	Computation spreading: employing hardware migration to specialize CMP cores on-the-fly
+    	Software-based instruction caching for embedded processors
+****** SESSION: Embedded and special-purpose systems
+    	Mapping esterel onto a multi-threaded embedded processor
+    	Integrated network interfaces for high-bandwidth TCP/IP
+    	Accelerator: using data parallelism to program GPUs for general-purpose uses
+****** SESSION: Transactional memory
+    	Hybrid transactional memory
+    	Unbounded page-based transactional memory
+    	Supporting nested transactional memory in logTM
+    	Tradeoffs in transactional memory virtualization
+****** SESSION: Compilation
+    	A new idiom recognition framework for exploiting hardware-assist instructions
+    	Automatic generation of peephole superoptimizers
+    	Combinatorial sketching for finite programs
+    	A probabilistic pointer analysis for speculative optimizations
+***** ASPLOS XI
+	  http://portal.acm.org/toc.cfm?id=1024393&coll=GUIDE&dl=GUIDE&type=proceeding&idx=SERIES311&part=series&WantType=Proceedings&title=ASPLOS&CFID=65742060&CFTOKEN=34044427
+****** SESSION: New models and architectures
+    	Programming with transactional coherence and consistency (TCC)
+    	Spatial computation
+    	An ultra low-power processor for sensor networks
+****** SESSION: Storage
+    	D-SPTF: decentralized request distribution in brick-based storage systems
+    	FAB: building distributed enterprise disk arrays from commodity components
+    	Deconstructing storage arrays
+****** SESSION: Security
+    	HIDE: an infrastructure for efficiently protecting information leakage on the address bus
+    	Secure program execution via dynamic information flow tracking
+****** SESSION: Architecture
+    	Coherence decoupling: making use of incoherence
+    	Continual flow pipelines
+    	Scalable selective re-execution for EDGE architectures
+****** SESSION: Potpourri
+    	HOIST: a system for automatically deriving static analyzers for embedded systems
+    	Helper threads via virtual multithreading on an experimental itanium® 2 processor-based platform
+    	Low-overhead memory leak detection using adaptive statistical profiling
+****** SESSION: Memory system analysis and optimization
+    	Locality phase prediction
+    	Dynamic tracking of page miss ratio curve for memory management
+    	Compiler orchestrated prefetching via speculation and predication
+    	Software prefetching for mark-sweep garbage collection: hardware analysis and software redesign
+****** SESSION: Reliability
+    	Devirtualizable virtual machines enabling general, single-node, online maintenance
+    	Fingerprinting: bounding soft-error detection latency and bandwidth
+    	Application-level checkpointing for shared memory programs
+****** SESSION: Power
+    	Formal online methods for voltage/frequency control in multiple clock domain microprocessors
+    	Heat-and-run: leveraging SMT and CMP to manage power density through the operating system
+    	Performance directed energy management for main memory and disks
+**** ISCA
+***** ISCA '09
+	  http://portal.acm.org/toc.cfm?id=1555754&coll=GUIDE&dl=ACM&type=proceeding&idx=SERIES416&part=series&WantType=Proceedings&title=ISCA&CFID=65742060&CFTOKEN=34044427
+****** SESSION: New memory technology
+    	Architecting phase change memory as a scalable dram alternative
+    	A durable and energy efficient main memory using phase change memory technology
+    	Scalable high performance main memory system using phase-change memory technology
+    	Hybrid cache architecture with disparate memory technologies
+****** SESSION: Real time
+    	Dynamic MIPS rate stabilization in out-of-order processors
+    	Hardware support for WCET analysis of hard real-time multicore systems
+****** SESSION: Prefetching and streaming
+    	Spatio-temporal memory streaming
+    	Stream chaining: exploiting multiple levels of correlation in data prefetching
+****** SESSION: Reliability and fault tolerance
+    	Architectural core salvaging in a multi-core processor for hard-error tolerance
+    	End-to-end register data-flow continuous self-test
+    	Memory mapped ECC: low-cost error protection for last level caches
+****** SESSION: Multimedia and mobile
+    	AnySP: anytime anywhere anyway signal processing
+    	Rigel: an architecture and scalable programming interface for a 1000-core accelerator
+    	An analytical model for a GPU architecture with memory-level and thread-level parallelism awareness
+****** SESSION: Cache organization
+    	Multi-execution: multicore caching for data-similar executions
+    	PIPP: promotion/insertion pseudo-partitioning of multi-core shared caches
+    	Reactive NUCA: near-optimal block placement and replication in distributed caches
+****** SESSION: Routing
+    	A case for bufferless routing in on-chip networks
+    	Application-aware deadlock-free oblivious routing
+    	Indirect adaptive routing on large scale interconnection networks
+ 		Internet-scale service infrastructure efficiency
+****** SESSION: Load and stores
+    	InvisiFence: performance-transparent memory ordering in conventional multiprocessors
+    	Decoupled store completion/silent deterministic replay: enabling scalable data memory for CPR/CFP processors
+****** SESSION: DRAM and SSD
+    	Decoupled DIMM: building high-bandwidth memory system using low-speed DRAM devices
+    	Disaggregated memory for expansion and sharing in blade servers
+    	The performance of PC solid-state disks (SSDs) as a function of bandwidth, concurrency, device architecture, and system organization
+****** SESSION: Power in chip multiprocessors
+    	Thread criticality predictors for dynamic performance, power, and resource management in chip multiprocessors
+    	Thread motion: fine-grained power management for multi-core systems
+    	Temperature-constrained power control for chip multiprocessors with online model estimation
+****** SESSION: Hardware support for monitoring and debugging
+    	A case for an interleaving constrained shared-memory multi-processor
+    	SigRace: signature-based data race detection
+    	ECMon: exposing cache events for monitoring
+****** SESSION: Potpourri
+    	End-to-end performance forecasting: finding bottlenecks before they happen
+    	Scaling the bandwidth wall: challenges in and avenues for CMP scaling
+    	A fault tolerant, area efficient architecture for Shor's factoring algorithm
+****** SESSION: Memory system reconfiguration and acceleration
+    	Performance and power of cache-based reconfigurable computing
+    	A memory system design framework: creating smart memories
+    	Flexible reference-counting-based hardware acceleration for garbage collection
+****** SESSION: On-chip interconnection networks
+    	Firefly: illuminating future network-on-chip with nanophotonics
+    	Phastlane: a rapid transit optical routing network
+    	Achieving predictable performance through better memory controller placement in many-core CMPs
+****** SESSION: Speculative threading and parallelization
+    	Dynamic performance tuning for speculative threads
+    	Boosting single-thread performance in multi-core systems through fine-grain multi-threading
+    	Simultaneous speculative threading: a novel pipeline architecture implemented in sun's rock processor 
+***** ISCA '08
+	  http://portal.acm.org/toc.cfm?id=1381306&coll=GUIDE&dl=ACM&type=proceeding&idx=SERIES416&part=series&WantType=Proceedings&title=ISCA&CFID=65742060&CFTOKEN=34044427
+ 	  Achieving Out-of-Order Performance with Almost In-Order Complexity
+ 	  Fetch-Criticality Reduction through Control Independence
+ 	  A Two-Level Load/Store Queue Based on Execution Locality
+
+ 	  Self-Optimizing Memory Controllers: A Reinforcement Learning Approach
+ 	  A Comprehensive Memory Modeling Tool and Its Application to the Design and Analysis of Future Memory Hierarchies
+ 	  Parallelism-Aware Batch Scheduling: Enhancing both Performance and Fairness of Shared DRAM Systems
+
+ 	  Technology-Driven, Highly-Scalable Dragonfly Topology
+ 	  Globally-Synchronized Frames for Guaranteed Quality-of-Service in On-Chip Networks
+ 	  Polymorphic On-Chip Networks
+
+ 	  Using Hardware Memory Protection to Build a High-Performance, Strongly-Atomic Hybrid Transactional Memory
+ 	  TokenTM: Efficient Execution of Large Transactions with Hardware Transactional Memory
+ 	  Flexible Decoupled Transactional Memory Support
+
+ 	  Corona: System Implications of Emerging Nanophotonic Technology
+ 	  Microcoded Architectures for Ion-Tap Quantum Computers
+ 	  Running a Quantum Circuit at the Speed of Data
+
+ 	  ReVIVaL: A Variation-Tolerant Architecture Using Voltage Interpolation and Variable Latency
+ 	  Trading off Cache Capacity for Reliability to Enable Low Voltage Operation
+ 	  Counting Dependence Predictors
+
+ 	  Virtual Circuit Tree Multicasting: A Case for On-Chip Hardware Multicast Support
+ 	  iDEAL: Inter-router Dual-Function Energy and Area-Efficient Links for Network-on-Chip (NoC) Architectures
+ 	  MIRA: A Multi-layered On-Chip Interconnect Router Architecture
+
+ 	  Rerun: Exploiting Episodes for Lightweight Memory Race Recording
+ 	  Atom-Aid: Detecting and Surviving Atomicity Violations
+ 	  DeLorean: Recording and Deterministically Replaying Shared-Memory Multiprocessor Execution Ef?ciently
+
+ 	  Intra-disk Parallelism: An Idea Whose Time Has Come
+ 	  Understanding and Designing New Server Architectures for Emerging Warehouse-Computing Environments
+ 	  Improving NAND Flash Based Disk Caches
+
+ 	  Online Estimation of Architectural Vulnerability Factor for Soft Errors
+ 	  A Proactive Wearout Recovery Approach for Exploiting Microarchitectural Redundancy to Extend Cache SRAM Lifetime
+ 	  Variation-Aware Application Scheduling and Power Management for Chip Multiprocessors
+
+ 	  Flexible Hardware Acceleration for Instruction-Grain Program Monitoring
+ 	  VEAL: Virtualized Execution Accelerator for Loops
+ 	  From Speculation to Security: Practical and Efficient Information Flow Tracking Using Speculative Hardware
+
+ 	  Software-Controlled Priority Characterization of POWER5 Processor
+ 	  Learning and Leveraging the Relationship between Architecture-Level Measurements and Individual User Satisfaction
+ 	  Atomic Vector Operations on Chip Multiprocessors
+ 	  3D-Stacked Memory Architectures for Multi-core Processors
+***** ISCA '07
+	  http://portal.acm.org/toc.cfm?id=1250662&coll=GUIDE&dl=ACM&type=proceeding&idx=SERIES416&part=series&WantType=Proceedings&title=ISCA&CFID=65742060&CFTOKEN=34044427
+***** ISCA '06
+	  http://portal.acm.org/toc.cfm?id=1135775&coll=GUIDE&dl=ACM&type=proceeding&idx=SERIES416&part=series&WantType=Proceedings&title=ISCA&CFID=65742060&CFTOKEN=34044427
+* HoneyComb
+** 计算理论与物理因素
+*** 什么是计算
+**** 数据的转换
+	 将 *一组数据* 按照预先定义好的 *流程* 转换成 *另一组数据*
+**** 无需考虑输入输出
+	 它们永远不会是瓶颈，否则就不再是计算
+**** 理想状态
+	 有一个无穷快的处理器，接收 流程，处理 数据
+**** 现实状态
+	 处理器的速度有 上限
+**** 解决办法
+	 增加硬件数量，把 处理器 堆叠起来
+**** 物理极限
+	 - 处理器的 运算速度 x 数量
+	 - 处理器之间的 传输速度
+*** 理想假设
+   	- 硬件面积是免费的
+   	- 传输速度只和片上的距离有关
+   	- 不关心空间复杂度，那是免费的
+*** 算法
+**** 现状
+***** 算法的定义
+	  一般是由语言文字描述的状态机组成，由程序员转换成程序
+***** 算法的描述
+	  通常使用流程图(flowchart)
+***** 复杂度
+	  - 时间复杂度 Ta(n) = O(fa(n))
+	  - 空间复杂度 Sa(n) = O(ga(n))
+***** 不足
+	  - 复杂度角度：时间复杂度并没有体现Amdahl's law的内容
+	  - 算法定义角度：状态机的定义方式，注定了只适合单运算单元
+	  - 依赖关系角度：流程图没有体现各个部分的依赖关系
+**** 扩展
+***** 算法的特定流程
+	  - 首先，画出算法的数据流图(dataflow)
+	  - 在n向量已经给出的条件下，画出完整的，拓扑的数据流图
+	  - 通过重复数据流图中的部分内容，达到拓扑性质
+	  - 设该图为Ga(n)
+***** 复杂度扩充
+	  - 特定数据流图Ga(n)的关键路径长度，就是Amdalh's law中只能串行的部分
+	  - 设关键路径长度为la(n)，则可以认为，在k个运算单元下的时间复杂度：
+        Ta(n, k) = O(fa(n) / k + la(n))
+***** TODO 考虑运算单元传输的复杂度
+	  - 在二元运算的情况下，数据传输的复杂度为O(2 * fa(n))
+	  - 在合理安排处理器摆放后，数据传输的时间复杂度为O(log(k))
+	  - 总的复杂度为O(fa(n)*log(k))
+***** 算法的定义
+	  - 寻找一个与数据流同样表现能力的，简单易懂的表现形式作为算法的定义
+	  - 能够很好地同时表现fa(n)和la(n)
+** 理论基础
+*** Lambda Calculus
+**** 基于LC的程序
+	 程序是由 *函数调用* 组成的
+	 函数调用 将 程序运行 虚拟成一棵 *树*
+**** 运行程序
+	 运行程序的过程就是 *树的遍历*
+	 遍历过程所需要的 *堆栈* 是运行程序 *必要且完备* 的组件
+**** 程序的并行
+	 现有的并行，我听说的基本上是挖掘 *树* 的 *兄弟节点* 的相关性
+	 如果 兄弟节点 之间没有关联，则可以 并行地对这些节点进行 遍历
+***** 支持变量赋值的语言
+	  并行性需要 程序员 *手动* 标注，程序员编写这样的代码 需要额外的努力
+	  并且只对 *一部分程序* 有显著效果
+
+	  *循环* 是这样优化的 典型例子，在 循环体 的数次执行之间 没有依赖关系 的循环，可以被 显著地 优化
+	  但这样的 循环 比较少见，这样逼迫程序员 手动去除 循环体中不必要的依赖关系，甚至 牺牲部分性能 以换取 无依赖性
+***** 禁止变量赋值的语言
+	  变量不可再次赋值，兄弟节点间必然无依赖关系
+	  并行性可以直接利用，但这样的语言，通常
+	  - 用 *尾递归* 代替有少量依赖关系的循环
+	   	尾递归 可以被优化成循环，但是不能被 并行运行，因为没有办法检测每次 尾递归 的执行之间 是否有依赖关系
+	  - 树的 宽度 通常被转换成 深度
+	   	这在普通情况下并没有什么不同，但是只有 树的宽度 才可能被 并行优化
+*** Pi Calculus
+   	每个进程就像一个嗷嗷待哺的芯片，输入输出口一旦被插对，就可以开始运作
+   	如果说流处理器是一条由计算芯片组成的流水线，那么PC写出的程序，就像在不断地
+   	构造这样的流水线，并使其运行。
+**** TODO 数据是什么？进程还是别的？
+**** TODO 数组怎么办？？？
+** 现有架构
+*** 冯诺依曼的计算机
+   	存储器 控制器 运算器
+   	存储器 存放 程序 和 数据
+
+   	程序 和 数据 逻辑上完全分开
+*** EDGE(Explict Data Graph Execution)
+   	http://en.wikipedia.org/wiki/Explicit_Data_Graph_Execution
+**** 基本思想
+   	 - 将数据不相关的多条指令合成一个hyperblock
+   	 - static placement, dynamic issue
+   	 - hyperblock于编译时形成
+**** 详细内容
+	 EDGE其实是一个编译时对执行单元进行分配的一项技术。硬件上需要一个具
+     有多个执行单元的处理器，而执行单元的物理分布需要预先知道。
+
+	 在编译时，选择没有分支的一个基本块作为分析内容。将基本块进行拓扑排
+     序后，将其用某种算法依次分配给处理器的多个执行单元，使得总执行时间
+     最短。
+**** TRIPS
+	 Tera-op, Reliable, Intelligently adaptive Processing System
+	 是EDGE的一个实现。
+*** VLIW(Very Long Instruction Word)
+   	- 编译时将多个原子操作放入一条指令
+   	- static placement, static issue
+   	- 由编译器决定原子操作是否具有数据依赖性
+   	- 足够简单粗暴
+**** 不足
+	 - 指令集没法后向兼容，多加点指令就挂了
+	 - 内存访问没有确定的delay，编译器无法做static scheduling
+*** EPIC(Explicitly Parallel Instruction Computing)
+   	http://en.wikipedia.org/wiki/Explicitly_parallel_instruction_computing
+   	http://www.hpl.hp.com/techreports/1999/HPL-1999-111.pdf
+*** Dataflow Computer
+**** Manchester Prototype
+**** Dataflow Language
+***** 程序运行的核心是Data
+***** 程序由很多'black box'组成
+	  每个black box定义了一个输入，每当有数据符合输入的时候，便开始执行，
+      并返回输出。
+***** 通常的实现方法
+	  有一张大Hash表，key是合法输入组合，而value则是代码的函数指针。每当
+      执行完毕的时候，就去Hash表中挨个查看是否有可以执行的black box。
+
+	  当有black box返回多个输出的时候，通常可以开始一次并行计算。
+
+	  并行计算时，这张Hash表是唯一需要向全局共享的。
+***** 和我的初步设想是何其相似啊！
+***** 问题和不足
+	  - 无法把如此多的数据放在靠近CPU的地方，使其完全并行
+	  - Modern Language很难编译成Dataflow形式，一般使用Prograph等语言
+	   	http://en.wikipedia.org/wiki/Prograph
+** 设计构想
+*** 程序结构
+**** 指令
+***** 程序是基于Pi Calculus写成的，有如下基本指令：
+	  - 信号接收指令 in!(arg)
+	  - 信号发送指令 out!(arg)
+	  - 启动进程指令
+***** 在Pi Calculus的基础上，增加了基本的指令：
+	  - 数学计算指令
+	  - 数据访问指令
+	  - 开启Process指令
+***** 程序的基本组成部分 -- Process：
+****** 定义
+	   Pf(param) = in?(arg), f(arg), [if (v) then out1!(ret1) else out2!(ret2)]
+	   - param是Process的构造参数，在Process启动的时候给出
+	   - f(arg)是由基本指令组成的序列，允许使用local variable作为状态
+	   - if的部分，如果local variable v非0，则执行out1!(ret1)，否则执行
+         out2!(ret2)
+	   - if部分是可选的，一个service很可能希望在信号发送以后，添加一个
+         启动进程指令，以继续存在
+****** 性质
+	   - 状态一共有两种：param和local variable
+	   - 在Process执行完毕后，自行消亡
+***** 跳转指令
+	  - 在Process的f(arg)中，不支持跳转指令
+	  - 跳转指令由Process结束的if来实现
+**** 数据
+	 - 数据模型很简单，就是一块flat memory
+	 - 数据访问指令可通过地址来访问数据
+*** 硬件结构
+**** 逻辑
+***** 结构的组成部分
+****** 运算单元
+	   大量的运算单元，可以认为是比原先内存储器少一到两个数量级的数量
+****** 外设(存储器和输入输出设备)
+	   - 存储器和输入输出设备，通过总线和运算单元群连接
+	   - 数个运算单元，用来统一处理外设请求，并通过总线访问外设
+	   - 对性能要求高的情形，可以用多条总线
+***** 与冯诺依曼结构组成的不同
+****** 没有控制器
+	   - 每个运算单元具有控制其它运算单元协同处理的能力
+	   - 分配运算单元这样的事情，也是由运算单元来完成的
+	   - HoneyComb的Idea是每个小计算单元独立地存在，而没有一个在顶端的
+         东西来控制它们
+****** 存储器作为外设的一部分
+	   当把状态和数据分清楚以后，就不需要再特别地将存储器从外设中拿出
+	   来单独考虑了。因为它不再是一个时间瓶颈，它只提供输入数据，以及
+	   存放输出数据。
+**** 运算单元
+	 运算单元是Process的物理映射。在实际运行中，一个Process会被bound到
+     一个运算单元上。
+***** 组成
+	  每个运算单元是一个轻量级的处理器，它由如下组成部分：
+	  - ALU
+	  - 状态控制单元
+	  - ICache
+***** 状态控制单元
+	  运算单元有3个状态：
+	  1. 空闲
+		 初始化时的状态
+	  2. 等待信号当一个Process被分配到运算单元的时候，进入该状态；运行
+         时遇到信号接收指令时，也会进入这个状态
+	  3. 运行
+		 信号接收指令被满足后，进入该状态开始运行
+***** 排列方式
+	  使用某种分形的方式，以树状将运算单元排布起来即可。保证任意两个运算
+      单元的通信时间为O(log(n))
+**** 运算单元间的数据传输
+***** 由树状结构形成的一个网络
+	  每个交点都有一个路由。如果传输的目的地已知，则引导向正确的方向；
+      如果是广播传输，则向除了信号进入的端口外所有端口发送。
+***** 确定性传输
+	  每一个运算单元有一个编号。如果在编译时已经可以确定一段程序内信号
+      发送的目标进程，则可以在进程映射到运算单元的时候，将编号与信号发
+      送指令绑定。该传输占绝大部分比例。
+***** 不确定性传输
+	  如果不确定发送的目标进程，或者目标进程有多个，则通过一个类似
+      TCP/IP握手的流程来进行传输：
+	  1. 发送方广播传输请求
+	  2. 所有满足要求的接收方发回ACK，包含运算单元号，并锁定自己
+	  3. 发送方收到第一个ACK后，进行真正的信号发送
+	  4. 发送方收到的其它ACK，发回IGNORE
+	  5. 接收方收到IGNORE后，解除锁定
+	  6. 接收方在锁定状态下，只接受来自发回ACK的目标运算单元的信号发送
+***** 性能
+	  如果所有的发送接收都是确定性传输，可以认为达到对传输资源的最优利
+      用；而广播发送会占用网络所有资源各一个周期，所以需要尽可能减少广
+      播的数量。
+**** 外设访问
+	 有两种连接方法：
+***** 总线和运算单元的树根相连
+	  所有的运算单元都通过网络达到树根，然后进行外设请求
+***** 多条总线，每条总线和一个运算单元绑定
+	  所有的运算单元，对于特定的请求，需要与特定的运算单元通信达成
+*** 哲学
+**** 数据和状态
+	 - 要弄清楚什么是状态，什么是数据。现今的架构，将状态和数据混为一
+	   潭，而使用寄存器和cache作为状态和数据的透明优化。
+	 - HoneyComb的想法是，状态是由运算单元持有的，数据是处于运算单元外
+	   部的。由运算单元对状态的高效处理作为动机，使得被宠坏的程序员，
+	   将状态和真正的数据分开。
+**** 程序的行为
+	 - 现有的程序运行流程，是自顶向下的。因为树的遍历过程，就是自顶向下的。
+	 - HoneyComb的想法是，每个process是有生命的工人，它们互不干扰而又
+	   互相协作。程序设计时怀着这样的想法，设计出的程序才有好的并发性。
+**** 跳转指令
+	 - HoneyComb的Idea是赋予每个运算单元尽可能少的功能，同时保证整个系
+	   统的完备性。
+	 - 跳转指令的设计是这个理念的体现，每个运算单元都不需要特别考虑
+	   IP(指令寄存器)的移动(如果是这么实现的话)。
+	 - 这样设计的跳转指令还可以强迫程序员少用跳转，而跳转是性能下降的
+	   一个重要因素。
+	 - 关于跳转语句的结果(信号发送)，有待斟酌
+*** 现有程序/语言支持
+	现有的程序，以c语言为例，只需要支持条件/循环/函数调用即可。
+**** 基本转换方法
+	 将函数切成basic block，每个basic block是一个process，使用信号传输
+     来进行连接。
+**** 支持递归的函数调用
+	 函数调用进行前，首先alloc一些运算单元，然后将被调用函数所有的
+     process都映射上去。这样，有一次函数调用，在运算单元中就有一份
+     process，可以进行递归调用。
+**** 局部变量
+	 小的局部变量，作为process的local variable；大的局部变量，用heap
+     allocator作为数据访问。
+**** local variable比较多
+	 当一个process中local variable比运算单元能保存的数量多的时候，可以
+     将process切成2个或多个部分。这样做是一定可以成功的，因为运算单元可
+     以保存的local variable数一定要比单条指令的所有操作数多。
+*** 对数据流图描述的算法的支持
+*** Lock/Critical Section
+**** Critical Section
+	 HoneyComb没有Critical Section一说。如果程序员觉得一段代码同时只能
+     被执行一次，那么就让这些process同时指映射到一个运算单元即可。
+**** Lock
+	 一个Lock就是一个process:
+
+	 Pl(l) = l?ch, def(token), ch!token, token?void, Pl(l)
+
+	 定义一个token，然后给请求者发回去；请求者释放后返回Pl(l)状态
+*** 算法进化

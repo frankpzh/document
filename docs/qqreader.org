@@ -1,0 +1,1162 @@
+#+STARTUP: overview
+#+TAGS: TODO(t)
+
+#+TITLE: QQReader代码文档
+
+清华大学 计算机系 潘震皓
+
+* 背景介绍
+  QQReader是一个Symbian S60操作系统下的一个手机电子书阅读器的原型。
+** 适用环境
+   QQReader的代码，在S60 SDK 3rd FP1下编译通过。并在Nokia E71手机上工
+   作正常。同时，该份代码亦可在S60 SDK 3rd FP1自带的模拟器上运行，但有
+   一些bug，疑似是模拟器的问题。
+** Symbian的内存使用
+   Symbian是为嵌入式设备设计的操作系统，它的硬件资源往往很贫乏。为了节
+   省利用资源，防止Memory Leak，Symbian使用了一套比较特殊的内存使用方
+   式。
+*** Leave和Panic
+	由于种种原因，Symbian没有使用C++内置的异常处理系统，而是重新设计了
+	一套系统。这套系统以Leave和Panic为核心元素。
+
+	- Leave表示的是一个可以被修复或可以被忽略的错误。这个错误由一个4字
+	  节的整型来表示，其中0表示没有错误，而负数表示错误。Leave由
+	  User::Leave()函数来抛出。该抛出会沿着Call Stack向上传递，直到有
+	  一层函数调用被TRAPx()宏包围为止。
+
+	  注：从堆上分配空间（new）也是一个可能会Leave的函数调用。
+
+	- Panic表示的是不可修复的错误，该错误会直接终止整个程序的运行。使
+	  用User::Panic()函数来抛出。
+*** CleanupStack
+	在堆上分配的数据，必须由程序显式地释放。而当调用可能会Leave的函数
+	时，如果不进行特殊处理，堆上未释放的资源往往会得不到释放。所以在
+	Symbian中，调用可能会Leave的函数之前，必须要将需要释放的数据指针压
+	入CleanupStack中。
+
+	指针从CleanupStack中弹出时，可以选择是否立即释放。由于这种便利性，
+	在同一个函数中，往往应该每当在堆上分配完空间后，就立即压入
+	CleanupStack；而需要释放该块空间时，通过从CleanupStack中弹出来释放。
+
+	配平是CleanupStack最重要的一件事情。配平指的是栈的压入和弹出的配对。
+	一般来说，最好的办法是保证每一个函数中对CleanupStack的配平。当没有
+	配平时，会出现一些难以解释的现象，所以一定要多加注意。
+
+	当堆上未分配对象是即将调用的函数的参数时，决定对象是否要压入
+	CleanupStack就是一个需要思考的问题了。一般来说，需要感觉该函数是否
+	有接管这个对象的隐含意思。如果函数有接管这个对象的隐含意思，那么发
+	生Leave时对象的释放就应该由函数内部来完成。此时不需要（也不能够）
+	将对象压入CleanupStack中。
+*** L后缀和LC后缀
+	Symbian代码规范规定，可能会Leave的函数，必须要加上L后缀（该规定
+	不受编译器检查，需要由程序员自己恪守）。
+
+	而会从堆上分配数据的Factory函数，为了便利往往提供一个已经将生成对
+	象压入CleanupStack的版本。这样的版本必须有一个LC后缀，表明该函数已
+	经向CleanupStack增加了一项，需要外层函数来配平。
+*** 特殊情形：CArrayPtrSeg的AppendL
+	CArrayPtrSeg是一个指针数组类。AppendL有接管指针参数的含义，但是该
+	参数必须加入CleanupStack。
+** Symbian的图形界面编程
+*** 两种图形界面：基于控件和对话框/基于视图
+	Symbian有两种图形界面的设计方法。基于控件和对话框适用于视图比较少
+	的情况，而基于视图适用于视图比较多或者需要和其它应用程序共享视图的
+	情形。所以 *QQReader选择了基于控件和对话框* 。
+*** UI，线程与Active Object
+	每一个应用程序默认只有一个线程，UI和其它操作都在这一个线程上完成。
+	如果需要做CPU密集的运算而不愿意卡死UI，则需要使用到Active Object。
+
+	Active Object是纤程（Fiber）的Symbian实现。每当UI线程空闲的时候，
+	会执行Active Scheduler。而Active Scheduler会在被执行的时候选择优先
+	级最高的一个Active Object执行。这样一来，只要将任务分割成不会卡死
+	UI的数个Active Object，就可以将任务放于后台运行了。
+*** MVC结构
+	Symbian的MVC结构的实现，很直观。每个图形界面程序，必须通过主类创建
+	一个文档类(Model)，然后由文档类创建UI类(Controller)。最后在UI类
+	中，根据自己的需求创建控件或视图(View)。
+*** 按键，事件与响应
+	Sumbian的图形界面的事件响应，和MFC的比较类似。在UI类上，可以接收到
+	以command\_id为标示的菜单事件。而在每个控件或视图上，又可以分别接收
+	按键/鼠标等细节消息。
+	- 在UI类中，HandleCommandL方法用来接收菜单事件
+	- 在控件类中，使用InputCapabilities设置感兴趣的按键事件，然后使用
+	  OfferKeyEventL接收按键事件
+** Symbian的资源文件
+*** 资源在存储器中的排布
+	Symbian的资源文件有很多类，后缀名rss/rls等。但是在编译好的程序中，
+	资源总是作为一个二进制文件出现的。因为QQReader只访问了编译后的rss
+	资源，所以就不介绍其它资源的排布方式了。
+**** rss文件的两种组成部分
+	 rss文件是由很多Pieces组成的，这些Pieces只有两个类型：STRUCT和
+	 RESOURCE。
+***** RESOURCE
+	  RESOURCE代表了资源的实际内容。每个资源有一个资源类型，以及一个资
+	  源ID。其中资源类型对应一个STRUCT，而资源ID将成为常量被cpp文件使
+	  用。RESOURCE在编译的时候，会被映射成连续的数个字节；而字节数取决
+	  于资源的类型。
+
+	  在RESOURCE中，需要对STRUCT中规定的项进行赋值，从而形成资源。
+***** STRUCT
+	  一个STRUCT对应着一类RESOURCE，而STRUCT就是类型的定义。在
+	  STRUCT中，需要定义一个或多个项，给出项的名称和类型。如果给出了某
+	  项的默认值，则RESOURCE可以不给该项赋值。
+**** 资源的基本单元
+***** 整型数值
+	  可以用WORD/LONG等基本类型，定义一个整型的项。该项一般用来存储
+	  enum的值，例如CommandId。在编译后的结果中，WORD占2字节。
+***** 字符串
+	  可以用LTEXT定义一个宽字符串。在编译后的结果中，LTEXT对应一个2字
+	  节的字符串长度，以及2*len字节的字符串内容。
+***** 资源引用
+	  可以用LLINK表示一个对资源的引用。在编译后的结果中，LLINK占4个字
+	  节。
+*** 在程序中访问资源
+	在Symbian程序中，可以使用TResourceReader类来进行资源的访问。
+**** 类初始化
+	 使用CCoeEnv的CreateResourceReaderLC函数来对一个TResourceReader进
+	 行初始化，参数中要给出资源的ID。
+**** 读取内容
+	 TResourceReader中提供了诸如ReadInt16/ReadHBufL等函数，可以读取资
+	 源的基本单元。可以参看CQuickSetting::ConstructL作为例子。
+** Symbian的对话框支持
+   Symbian提供了构建自定义对话框的类，也提供了官方定义的标准对话框。
+*** 标准对话框
+	Symbian提供的标准对话框非常丰富，对于一般的通知信息和输入框，都可
+	以很好地满足。这里只介绍在QQReader中使用到的标准对话框。
+**** 错误提示对话框
+	 对于Symbian系统中的Error code，可以用错误提示对话框来通知用户。使
+	 用错误提示对话框非常简单，只需要创建一个CErrorUI并调用
+	 ShowGlobalErrorQueryL函数就可以了，而不需要创建资源。
+**** 等待对话框
+	 等待对话框会显示一个不断变化的等待条，非常适合在打开文件/网络访问
+	 这些耗费时间的任务运行的时候显示。
+***** 资源
+	  在资源文件中必须为每个等待对话框创建资源。在资源文件中，需要提供
+	  等待条的动画，以及显示的提示信息。可以参看QQReader.rss的
+	  r\_wait\_dialog作为例子。
+***** 调用
+	  创建一个CAknWaitDialog并提供资源ID就可以了。
+**** 打开文件对话框
+	 这个对话框对QQReader非常重要，而实现的方法非常简单。
+***** 资源
+	  在资源文件中，为打开文件对话框创建资源。资源中只需要提供可供选择
+	  的目录列表就可以了。
+***** 调用
+	  使用AknCommonDialog::RunSelectDlgLD函数，提供存放文件名的
+	  TFileName和资源ID，返回是否成功选择文件。
+**** 文字输入对话框
+	 在输入URL/书签名的时候，会使用到文字输入对话框。
+***** 资源
+	  使用内置资源R\_AVKON\_DIALOG\_QUERY\_VALUE\_TEXT即可。
+***** 调用
+	  创建一个CAknTextQueryDialog，给定文字的长度限制，就可以调用
+	  ExecuteLD来显示对话框并获取文字了。
+**** 确认对话框
+	 在做不可反悔的事情的时候，通常需要一个确认对话框。例如删除书签。
+***** 资源
+	  在资源文件内，要为确认对话框提供确认信息内容，以及按钮名字。可参
+	  看QQReader.rss的r\_delete\_bookmark\_confirm作为例子。
+***** 调用
+	  创建一个CAknQueryDialog并提供资源ID，然后调用ExecuteLD来显示确认
+	  对话框。
+*** 自定义对话框
+	很显然，使用标准对话框是不足以完成所有事情的。Symbian提供了完全自
+	定义对话框的接口，QQReader在设置和书签中使用到了自定义对话框。
+**** DLG\_LINE
+	 DLG\_LINE是对话框的基本组成部分，很多情况下也是唯一组成部分。一个
+	 典型的DLG\_LINE是一个输入框，或者是一个列表。
+
+	 对话框的DLG\_LINE由对话框的资源中提供，每个DLG\_LINE可以使用
+	 Symbian提供的控件，也可以自定义控件。由于QQReader中只使用了自定义
+	 控件，所以这里不再详述。
+**** CBA
+	 显示对话框时的软键，通常和没有对话框时的不同。所以每个对话框可以
+	 绑定一组软键，在显示对话框的时候，相应的软键也被显示。
+
+	 软键由对话框资源的CBA项给出，一般只要标明了左右软键的文字和消息名
+	 就可以了。
+**** 创建对话框
+	 对于每个自定义对话框，一般会继承CAknDialog类。创建一个自定义对话
+	 框的步骤和创建标准对话框并无不同，只需要运行ExecuteLD即可。如果自
+	 定义对话框需要在对话框显示出来之前，做一些初始化操作，则可以使用
+	 PrepareLC和RunLD两个函数调用来代替ExecuteLD，从而在中间做一些初始
+	 化的操作。
+**** 接收对话框消息
+	 有两个重要成员函数
+***** OkToExitL
+	  在对话框的标准退出消息被触发的时候(例如确认或取消被选中的时候)，
+	  就会调用OkToExitL函数。在函数中，需要判断是否真的退出对话框，并
+	  可以在退出之前做一些操作(例如保存设置)。
+***** ProcessCommandL
+	  如果对话框中可以弹出菜单，则菜单选中的消息就由ProcessCommandL来
+	  处理。
+**** SETTING\_ITEM
+	 Symbian还为设置对话框提供了一个非常方便的标准控件，那就是
+	 SETTING\_LIST。在SETTING\_LIST中，可以添加一个或多个SETTING\_ITEM来
+	 表示每一项可供调整的选项。
+
+	 关于SETTING\_ITEM的资源以及显示方法，很少有文档描述。可以参看
+	 QQReader.rss的r\_config\_setting\_dialog，以及CQQReaderSettingList类
+	 作为例子。
+** Symbian的持久化存储
+*** 字典式存储
+	Symbian最典型的持久化存储是一个叫DictionaryStore的存储方式。它的显
+	著特点就是类似python的dict，一个key对应一个value。字典式存储对应的
+	类是CDictionaryStore。
+**** TUid
+	 字典式存储的key被叫做Uid，它是一个32位的整型数，对应的类为TUid。
+	 在使用字典式存储进行读取和保存的时候，都要指明TUid，从而对应正确
+	 的内容。
+**** 存储内容
+	 字典式存储的value是一个字节流。读取的时候，会将原先已经存储的字节
+	 以流的形式展现；而存储的时候则会将流对应的字节覆盖原先的数据。
+**** 创建方法
+	 CDictionaryStore不能通过构造函数构造，而只能通过Application类的
+	 OpenIniFileLC方法来构造。
+
+	 而默认的Application类的OpenIniFileLC方法是一个空实现。如果要使用
+	 字典式存储，就必须要在程序的Application类中继承OpenIniFileLC方
+	 法，并在方法中调用祖先类CEikApplication的OpenIniFileLC方法。可以
+	 参看QQReaderApplication作为示例。
+**** 访问方法
+	 在创建完CDictionaryStore之后，就可以创建输入流或者输出流进行操作
+	 了。当然前提是得确定TUid的值。
+
+	 使用AssignLC方法来创建输出流，而使用OpenLC方法来创建输入流。为了
+	 避免创建失败，必须在OpenLC方法之前调用IsPresent方法确保字典式存储
+	 中对应TUid已经有数据存在。
+
+	 *重要* ：在对字典式存储产生修改之后，必须要调用CommitL方法来将修
+	 改写入。
+*** 存储流的操作
+	存储流对应的类是RDictionaryReadStream和RDictionaryWriteStream。它
+	们的操作方法和普通的流并没有什么不同，选择合适的Read或者Write函数
+	进行数据操作即可。
+
+	*重要* ：在对数据流进行写入后，必须要调用CommitL方法来保存数据流内
+	容。
+*** 真正存放的位置
+	字典式存储真正存放的位置是在c盘private目录下对应的应用程序目录中。
+** Symbian的HTTP访问
+   Symbian提供了对HTTP访问的支持。与很多其它语言提供的库类似，Symbian
+   提供的是异步的HTTP访问。而异步的方式，则是通过回调类(回调函数)来实
+   现的。
+*** 回调函数
+	HTTP访问需要一个实现了MHTTPTransactionCallback的类，以提供回调函数。
+	回调函数包括两个：MHFRunL，MHFRunError。前者是用来接收数据包，以及
+	访问结束信息的；而后者则是用来返回各种错误的。
+*** 访问过程
+	在进行HTTP访问时，需要建立一个Session表示一组HTTP访问；而每次访问
+	一个URL，则需要建立一个Transaction，表示进行某一个HTTP访问。
+
+	在Symbian中，对应的Session类是RHTTPSession，而对应的Transaction类
+	则是RHTTPTransaction。
+
+	进行HTTP访问时，需要创建一个RHTTPSession对象并调用它的OpenL方法；
+	然后需要使用RHTTPSession的OpenTransactionL方法，将URL提供并获得一
+	个RHTTPTransaction对象。
+*** 接收数据
+	由于Symbian的运行环境资源比较稀少，所以Symbian的HTTP访问就不能像电
+	脑上的那些库那么阔绰地将整个HTTP数据一起返回给程序。取而代之的是，
+	每次获得一个数据包，就交给MHFRunL回调函数，让其进行内存的管理。
+
+	当MHFRunL函数的aEvent参数值是EGotResponseBodyData的时候，就代表一
+	小片HTTP数据。MHFRunL函数应该将这些小片的HTTP数据合并成一个大数
+	据，从而成为访问的结果。
+*** 访问结果
+	HTTP访问的结束信息也是由MHFRunL函数来处理的。当aEvent参数的值是
+	ESucceed时，代表HTTP访问成功结束；而当其值为EFailed时，则代表HTTP
+	访问失败。当访问成功时，之前接收到的小片HTTP数据连接起来就是访问的
+	结果；而当访问失败时，则应该完全丢弃之前收到的小片数据。
+
+	注意在访问结束后，需要由MHFRunL函数来调用RHTTPTransaction的Close方
+	法。
+* 代码结构与细节
+** 编码规范
+** 代码结构
+   - 所有与UI有关的东西，以及系统提供的MVC架构，都放在src和inc的目录根下
+   - 所有的文档类，以及PaperSection，都放在document目录下
+   - 所有的书签类，都放在bookmark目录下
+   - 所有的Singleton的工具类，都放在service目录下
+*** 代码结构图
+	[[structure.png]]
+** 文档的内部表示
+   电子书在QQReader被分成被叫做Section的小块。Section的父类名是
+   RPaperSection，在PaperSection.h中定义。Section可能是一个标题
+   或者是一小段文字。可能是来自文件，也可能就在内存中。Section的类型由
+   Section中的TSectionType这个Enum来决定。
+*** 在内存中的Section
+	RTextSection用来表示在内存中的Section。它只需要保存一个HBufC以记录
+	标题或文字的内容，而iType用来表示它到底是标题还是正文。
+*** 在文件中的Section
+	RFileTextSection用来表示存在文件中的Section。把文字从文件中全部读
+	出来放在内存中，无疑是一件又耗费时间又耗费内存的事情。所以如果可以
+	只在需要的时候从文件中读取文字，则是非常合适的。
+
+	这样一来，RFileTextSection需要保存的内容有：
+	- iFile - 文件handle
+	- iStart, iEnd - 文字在文件中的位置
+	- iEncoding - 文字的编码
+	- iTextBuf - 初始时是NULL，如果文字已经被载入，则不用再重新载入
+
+	RSection提供了3个函数接口以完成这个Lazy loading:
+	- LoadL() - 载入文字内容
+	- Release() - 内存不够时，暂时释放文字内容
+	- Close() - 释放RSection之前，永久性释放文字内容
+*** Section的绘制
+	为了快速地定位Section，以及处理滚动条的移位，Section必须保存一个重
+	要的属性：高度。
+
+	在屏幕宽度以及字体大小确定的情况下，Section的高度是一个常数。而一
+	旦任何字体改变，或者屏幕大小改变，Section的高度就会随之变化。
+
+	所以每当载入一个文件，或者改变设置的时候，就必须要计算一下每一个
+	Section的高度，并将它们按顺序排列在一起，同时计算出摆放的位置(Y方
+	向)。计算高度的方法，与绘制一个Section代码并无二致。在
+	CRollPaper::DrawSectionL中同时实现了绘制一个Section和计算一个
+	Section的高度。
+** MVC结构
+   由于Symbian的MVC结构，Controller是由Model创建的，而在QQReader中则是
+   一个不变的Controller对应多个Model。所以在QQReader中没有真正使用
+   Symbian中的文档类，而是由Controller来创建自己的Model类。
+*** Controller
+	QQReader的Controller就是Symbian提供的MVC结构中的UI类
+	CQQReaderAppUi。在Controller中，完成了如下功能：
+**** 接收菜单命令事件
+****** 打开电子书文件
+	   首先显示打开文件对话框，让用户选择文件
+
+	   在打开电子书文件的时候，会根据文件的后缀名选择合适的Model类，并
+	   调用Model类的LoadFileL方法。
+****** 打开RSS网址
+	   首先显示输入框让用户输入RSS url
+
+	   然后构造CRssNetDoc类，并调用PostLoadL方法开始网络请求。
+	   网络请求结束后，由CRssNetDoc进行RSS的解析。
+****** 关闭文档类
+	   关闭文档类，使View不显示任何东西
+****** 书签相关
+	   - 添加书签
+	   - 将当前浏览的RSS网址添加为书签
+	   - 打开书签
+	   - 打开RSS书签
+	   - 打开离线RSS列表
+****** 打开设置窗口
+	   运行设置对话框，并在设置结束后通知View重新绘制(可能会有字体/颜
+	   色等变化)
+****** 打开/关闭QuickSetting
+	   打开QuickSetting时，会在屏幕中央绘制QuickSetting半透明窗口
+****** 退出
+	   退出程序
+**** 使用Active Object半后台载入文件
+	 载入文件可能是一个比较耗费时间的事情，所以为了不让用户感到困扰，
+	 必须将任务放在后台，并且显示一个等待对话框。将任务放在后台，就由
+	 CQQReaderAppUi::CLoadDocument类来实现。
+
+	 StartLoad方法接收一个文件名参数，并把自己(Active Object)放入
+	 Active Scheduler的列表中。
+
+	 RunL方法由Active Scheduler调用执行，构造Model类，并执行LoadFileL
+	 载入文件。载入完毕后，把等待对话框关闭。
+
+	 当RunL方法因为出错而发生Leave的时候，Scheduler就会调用RunErrorL方
+	 法。该方法会关闭等待对话框，并显示一个错误对话框。
+
+	 注意该Active Object会耗费很长的时间，是会卡住UI线程的。但是由于等
+	 待对话框已经显示，所以效果上并没有问题。
+**** 提供显示错误窗口的静态函数
+	 ShowError方法会显示一个错误对话框，当QQReader其它部分接收到无法处
+	 理的Leave信号的时候，就可以调用该方法显示错误对话框。
+**** 维护QuickSetting类
+	 保存是否显示QuickSetting的状态，以及保存一个CQuickSetting类。
+*** View
+	QQReader的View类是CRollPaper，它是CScrollControl的子类，实现所
+	有和文档类相关的事情。CScrollControl类是CCoeControl的子类，实现所
+	有滚动条相关的事情。
+**** 重要术语
+***** Page
+	  显示一屏内容的高度，比屏幕高度少一个标题栏和一个软键盘栏
+***** Segment
+	  Scroll可以滚动的最小高度单位，程序中为Page的1/4
+***** Model
+	  Scroll的模型，包括滚动条最大长度/屏幕长度/当前位置
+***** Section
+	  文档的最小单位，一般为一小段文字，或一个标题
+***** Viewport
+	  屏幕上可见的Section范围
+**** CScrollControl
+***** TScrollModel
+	  该工具类用来计算Scroll位置和像素之间的关系，它同时记录了滚动条的
+	  状态。
+****** ESegmentPerPage
+	   表示一个Page内有几个Segment，现在定为4
+****** iPos, iTotal
+	   滚动条位置和滚动条总长度(1单位为1个Segment)
+****** HeightToSegment, SegmentToHeight
+	   像素与Segment的互相转换
+***** SetContentHeight
+	  参数为像素，设置窗口高度
+***** OfferKeyEventL
+	  为光标键等定义了操作滚动条的事件
+***** iFrame
+	  这个对象代表滚动条窗体。它的使用方法非常直观，只要将其加入当前窗
+	  体，并在SizeChanged的时候合理摆放它，就可以使用了。
+
+	  iFrame有自己的Model：TAknDoubleSpanScrollBarModel，但是并不好用。
+	  所以这里每次更改TScrollModel的时候，要将其转换成iFrame的model，
+	  再通知iFrame。
+
+	  SetModel负责将TScrollModel转换成TAknDoubleSpanScrollBarModel，而
+	  ModelChange在调用SetModel的同时，还通知iFrame更新滚动条。
+***** TopExtend
+	  这个函数在后面的优化部分介绍
+**** 绘制背景
+	 这部分参考了网上的代码，主要有三部分：
+	 1. 调用CAknsBasicBackgroundControlContext创建iBackground对象
+	 2. 继承并在MopSupplyObject函数中对与背景相关的请求中提供iBackground对象
+	 3. 在Draw函数中用AknsDrawUtils实现背景的绘制
+**** 绘制文档内容
+	 绘制文档内容的步骤很直观：
+***** 根据屏幕高度和滚动条位置，计算出需要绘制的Section
+	  在Model类中提供了GetSectionByPos，可以获得位于屏幕上边缘和下边缘
+	  的Section编号。在这两个编号范围之内的Section，就是需要绘制的
+	  Section。
+***** 循环每一个Section，计算它的偏移量
+	  偏移量就是Section的位置 - 滚动条的位置。
+***** 绘制文本Section
+	  CRollPaper类的成员函数DrawSectionL是用来绘制文本Section的，同时它
+      也用来计算Section的高度。
+****** 参数与返回值
+	   - aSection：Section对象的指针
+	   - aGc：GC对象的指针，若该指针为空，则不进行绘制
+	   - aPos：绘制的起始位置(纵向)
+	   - 返回值：下一个Section应该绘制的起始纵向位置；该值与aPos的差为
+         Section的高度。
+****** 初始化环境
+	   通过CSettingServer(该类将在下文中介绍)获得字体对象和绘制颜色，并
+       对GC进行设置。
+****** 将文本按换行符分开
+	   由于GC的绘制函数把换行符看成一个普通的字符绘制，而不会进行折行，
+       所以这里需要用一个循环将文本内容按换行符分成单行，然后进行绘制。
+****** 绘制单行文本
+	   绘制单行文本时，需要自己控制折行。好在字体类提供了TextCount方
+       法，计算给定字符串在给定宽度内可以绘制几个字符。根据这一信息，可
+       以循环地将超过一行宽度的单行文本，折行地绘制。
+****** Section间距
+	   两个Section的间距为前一个Section的字体高度的一半。实现的方法是在
+       返回值上加上行高的一半。
+**** RefreshMenu
+	 每个Model对应的菜单和软键项可能是不一样的。该函数会在Model改变的
+	 时候调用，从Model处获得菜单和软键的信息，并更新界面。
+*** Model
+	Model类有很多，都在document文件夹下，其中公共父类是CRollPaperDoc。
+**** 文件载入
+	 LoadFileL函数用于文件载入。该函数会调用三个函数：
+	 - OpenFileL
+	 - ParseFileL
+	 - FinishLoading
+
+	 Model类的子类可以任意选择重载三个函数中的某几个，可也以选择重载
+	 LoadFileL以使用不同的载入流程。
+
+	 OpenFileL的默认行为是用iFile打开iFileName。
+	 FinishLoading的默认行为是计算Model的高度，然后通知View更新画面。
+	 ParseFileL是纯虚函数，子类必须实现。
+**** Sections
+	 Model类其实本质就是Section的容器。这个容器由iSections来担当。
+***** GetSectionByPos/GetSectionPos
+	  Section编号和Y轴位置的转换函数
+***** GetSectionByIndex
+	  用编号获取Section对象
+**** 高度计算
+	 如上文所说，Section的高度计算是不可或缺的。而CRollPaperDoc承担了这
+     项责任。高度计算的方法是CRollPaper的DrawSectionL方法，给定空指针的
+     GC和0的起始高度，就可以返回Section的高度。
+***** ViewChange
+	  当View宽度改变，或者是设置改变的时候，该函数就会被调用，以重新计
+	  算所有Section的高度。
+**** MenuResourceId/CbaResourceId
+	 被CRollPaper::RefreshMenu调用，标明了Model所对应的菜单和软键。
+** 书签支持
+*** 文档位置
+	TDocPosition类用来表示文档中的位置。因为QQReader不能横向滚动，所以
+	这里的位置其实就是指滚动条Y轴的位置。由于Section的高度并不是固定
+	的，所以使用像素作为位置的表示不是一个好主意。可能字体变过以后，自
+	己保存的位置都不正确了。
+
+	TDocPosition用两个值来表示一个位置：
+	- Section的编号
+	- 相对Section的偏移
+
+	这样误差就小得多了，而这里有一些约定：
+	- 无论是否真的有Section，TDocPosition(0, 0)表示文档最上端
+	- 偏移一般为正数
+*** 书签记录
+	一条书签记录由3部分组成：
+	- 书签名
+	- 文件名(也可能是URL)
+	- 文档位置
+*** CBookmark
+	该类为所有书签类的父类，定义了一些纯虚接口：
+**** Count
+	 包含的书签数
+**** PositionAt/LabelAt/FileNameAt
+	 给出书签编号，获得书签记录
+**** ReadOnly
+	 表示书签是否可修改
+**** ReLabelL/DeleteL
+	 重命名书签/删除书签，这两个函数仅当ReadOnly返回EFalse时才会被调用。
+*** CBookmarkBox
+	最基本的书签类，记录保存在Symbian手机内。一个CBookmarkBox只对应一
+	个文件，一般是通过文件名查找/创建对应的CBookmarkBox。CBookmarkBox
+	还保存了文档的当前位置，以便于下一次打开时继续阅读。
+**** 书签的保存方式
+	 Symbian的持久化存储，根据一个Uid对应一条stream。所以使用文件名的
+	 hash作为Uid是再好不过的事情了。Hash函数用于计算一个字符串的hash。
+
+	 在读取/存储CBookmarkBox的时候，使用TryTUidL函数。该函数会从文件名
+	 对应的Uid开始，依次按顺序检查stream，打开并检查保存的是否是文件名
+	 对应的书签信息。
+
+	 书签的保存方法很直观，存入文件名后存入当前的位置信息，然后依次将
+	 书签的内容写入。
+**** LoadL
+	 读取书签的函数。注意参数aLabelFileName，含义是是否需要将文件名作
+	 为书签名的后缀显示。目的是看到书签名就知道是什么文件，为全局书签
+	 服务。
+**** SaveL
+	 存储书签的函数。
+*** CRssNetBookmark
+	保存RSS URL的书签。特点是位置始终是TDocPosition(0, 0)。存储的时候
+	和CBookmarkBox并无不一样，只是选择常量EBookmarkIdRssNet作为Uid存储。
+	另外，与CBookmarkBox不同的是，CRssNetBookmark的每一条记录只包含一
+	个URL(也是文件名)；而CBookmarkBox的每一条记录只包含一个位置信息。
+
+	注意在CBookmarkBox中，TryTUidL需要跳过EBookmrkIdRssNet以免产生冲
+	突；同样也需要跳过保存设置的Uid。
+*** CStorageBookmark
+	用于保存离线RSS列表。特点是从文件而不是持久化存储读取内容，而且书
+	签不能被修改。
+
+	读取书签的位置是"E:\\QQReader\\storage.dat"，也就是SD卡QQReader目
+	录下的storage.dat。
+
+	书签的保存方法与前两个类似，这里就不再详细说明了。
+*** 书签窗口的显示
+	书签窗口是用对话框来实现的，对应的类为CBookmarkDialog。
+**** 内容
+	 对话框内容其实就是一个非常简单的DLG\_LINE，里面包含一个多行的
+	 LISTBOX。
+
+	 OpenDialogLD函数是用来显示书签窗口的，它在PrepareLC和RunLD之间，
+	 将书签内容填入LISTBOX。
+**** 菜单
+	 书签窗口有两份菜单，分别对应只读的书签和可写的书签。显而易见，只
+	 读的书签不能进行诸如重命名等操作。
+
+	 在CBookmarkDialog初始化的时候，会检查书签类的ReadOnly方法，并选择
+	 合适的菜单资源。
+**** 书签跳转的实现
+	 书签窗口都是由CQQReaderAppUi来调用的，为了不让CBookmarkDialog对
+	 CQQReaderAppUi有依赖，CQQReaderAppUi会传递两个指针给CBookmarkDialog。
+	 这两个指针分别表示文件名，以及显示位置。
+
+	 在书签窗口成功退出后，CQQReaderAppUi便会检查指针指向的位置，并载
+	 入文件，跳转位置。
+** 设置窗口
+   设置窗口也是用对话框来实现的，对应的对话框类为CSettingItemListDlg。
+*** SETTING\_ITEM
+    Symbian的基于视图的图形界面设计模式中，有一个非常适合作为设置对话框
+    中的控件，那就是SETTING\_ITEM。每个SETTING\_ITEM在资源文件中，有一
+    个值列表，表示某项设置的取值，包括显示内容和内部表示。其中显示内容
+    是一个字符串，而内部表示则是一个16位的整型。
+
+	很多个SETTING\_ITEM在资源文件中聚在一起，形成一个SETTING\_LIST。一
+    个SETTING\_LIST需要有一个对应的控件类，在这里为
+    CQQReaderSettingList。在控件类中，需要继承三个成员函数：
+**** CreateSettingItemL
+	 CQQReaderSettingList的父类，会在初始化的时候调用
+     CreateSettingItemL函数，并提供SETTING\_ITEM的ID。而这个函数需要根
+     据给定的ID，初始化一个SettingItem类供给SettingList类使用。
+***** 单项选择类
+	  QQReader的设置非常简单，每一个都是纯文本的单项选择。在这里，对于
+      纯文本单项选择，需要构造CAknEnumeratedTextPopupSettingItem类来与
+      之对应。构造函数中需要提供两个参数：SETTING\_ITEM的ID，以及该设置
+      对应的变量的饮用。
+***** 设置的取值
+	  每一个SETTING\_ITEM在程序中一一对应一个变量，作为设置的取值。对于
+      单项选择类，只需要使用TInt类型的变量就可以了。
+
+	  在绘制SETTING\_ITEM之前，SettingItem类会读取该变量，并作为初始的
+      选值；而在用户改变设置的时候，SettingItem在界面变化的同时，也会设
+      置这个变量，使得程序可以得知用户的选择。
+
+	  注意该变量的取值，一定要是SETTING\_LIST资源中值列表中的一项，否则
+      就会抛出错误。例如很自然的初始化成0，对于取值中没有0的字体大小选
+      项，就会出现错误。
+**** LoadSettingsL
+	 在SETTING\_LIST显示之前，SettingList类会自动调用LoadSettingsL函数，
+     以读取默认的设定。在QQReader中，该方法从CSettingServer中读取持久化
+     存储中保存的设置，并作为设置窗口的初始设置。
+**** StoreSettingsL
+	 在设置窗口关闭的时候，程序必须显式地调用StoreSettingsL方法，以将设
+     置保存。在QQReader中，该方法将每个设置对应的变量发送给
+     CSettingServer中，令其存入持久化存储中。
+*** 对话框类
+	虽然SETTING\_ITEM使用起来非常方便，但是它是为基于视图的图形设计方法
+    提供的。它没有依附在对话框上作为DLG\_LINE的接口。
+
+	好在网上有人给出了解决方案，用某些方法欺骗对话框类，使其与
+    SETTING\_ITEM合作使用。这个方法便是CSettingItemListDlg类。该类调用
+    的很多函数都没有文档，所以我无法理解。但是幸运的是它工作得很完美。
+
+	唯一需要关注的，就是CSettingItemListDlg的OkToExitL方法。选中
+    SETTING\_ITEM时，系统也会调用该方法，并设置ButtonId为EAknSoftkeyOk。
+    而为了不产生冲突，设置窗口的确认软键，就与EAknSoftkeySelect相绑定。
+
+	观看代码可以看到，OkToExitL方法的EAknSoftkeySelect分支，显式地调用
+    了CQQReaderSettingList的StoreSettingsL方法。
+*** CSettingServer
+	CSettingServer是一个Singleton的工具类。它的作用是通过持久化存储，读
+    取/存储设置，并负责生成绘制所需要的字体类。
+**** 读取/存储设置
+	 与书签的存储方法类似，设置是存在持久化存储内的。其TUid为
+     EBookmarkIdSetting。设置的存储方法非常直观，因为每个设置都是一个
+     TInt，所以将所有设置依次存入流中。注意在流的初始位置插入了4个字节
+     的Magic number以识别设置保存的正确性，其值为
+     CSettingServer::sMagic。
+**** 生成字体类
+	 在生成字体的时候，需要一个BitmapDevice的实例。而这个实例只有在
+     CRollPaper类中才能够得到。所以CSettingServer中提供了一个接口
+     SetBitmapDevice，供CRollPaper在可以获得BitmapDevice的时候告诉
+     CSettingServer。
+**** 文字编码
+	 Symbian提供了以KCharacterSetIdentifier为前缀的一些常数，表示各个文
+     字编码。但是这些文字编码都需要32位整型来存储。记得在前文中提到
+     的，SETTING\_ITEM的值列表，只能存储16位的整型。所以在这里，使用了
+     QQReader自己的CharsetId。函数IndexToEncoding和EncodingToIndex展现
+     了这两种ID的转换过程。
+**** 属性声明
+	 由于设置项有不少，为每项分别编写Get/Set函数，以及处理设置过程中的
+     事件触发(例如重新载入字体)是一件非常繁琐的事情。在SettingServer.h
+     中，使用了宏定义的方法实现了这些繁琐的操作。
+
+	 DEFINE_SETTING宏有5个参数：
+	 - name 属性的名称
+	 - type 属性的内部存储类型
+	 - escape 从设置选项，到内部存储类型的转换函数
+	 - unescape 从内部存储类型，到设置选项的转换函数
+	 - commit 设置被改变以后，需要运行的函数
+
+	 例如DEFINE_SETTING(TxtEncoding, TUint, IndexToEncoding,
+     EncodingToIndex, WarnEncodingChange)，表示声明一个TxtEncoding属
+     性，使用TUint保存；转换函数分别是IndexToEncoding和
+     EncodingToIndex；属性被修改后，需要执行WarnEncodingChange函数。该
+     函数会通知用户重新打开当前已打开的文本文件，以应用新的编码设置。
+** QuickSetting
+   QuickSetting功能是一个亮点。它的含义是，在屏幕上绘制一个半透明的3x3
+   手机键盘，每个键对应一项设置。在用户点击某个键的时候，对应的设置便会
+   改变，并直接将改变的结果显示出来。这个功能使得调整界面设置成为了一件
+   非常惬意的事情。
+*** CQuickSetting类
+	使用Symbian系统提供的控件机制，势必会失去透明的功能。因为针对每个控
+    件，为了效率Symbian会将其背景清空。即使没有清空，该控件覆盖下的内容
+    也不会再重新绘制，失去了透明的意义。
+
+	所以在QQReader中，CQuickSetting类只是一个普通类，它只负责绘制和事件
+    处理，与系统的控件机制无关。在实际运行时，CRollPaper类会创建一个
+    CQuickSetting实例，并在绘制/事件响应的时候通知CQuickSetting。相关的
+    函数为Draw和ChangeSetting。
+*** 透明界面绘制
+	绘制透明界面是一个体力活，不过没什么技术含量，就是一些绘图语句。值
+    得注意的是3x3键盘上文字的绘制，无论是否有设置，1~9的数字是必须要绘
+    制的。所以在绘制的时候，实现了一个3x3的2层循环。而在循环中，又记录
+    了一个keyNum变量代表键的数值。在键的数值小于等于选项的个数时，就需
+    要绘制选项的名称。
+*** 重用SETTING\_ITEM资源
+	根据DRY(Don't Repeat Yourself)原则，QuickSetting中使用到的设置的取
+    值，最好可以重用SETTING\_ITEM的。而重用的方法就是使用程序来显式地读
+    取资源，获得设置的取值信息。
+
+	与之相关的函数为CQuickSetting的ConstructL方法。它读取了
+    R_QUICK_SETTING_ITEMS资源的内容，并依此读取了各个设置的取值资源。其
+    中，SItem结构对应一项设置，而SSelection结构对应着设置的某一个选项。
+*** 更改设置
+	当用户在开启QuickSetting时按动1~9的数字键，CQQReaderAppUi便会调用
+    CQuickSetting的ChangeSetting方法，并将键值作为参数传递。
+
+	而ChangeSetting方法会调用GetSettingValue函数，获得CSettingServer提
+    供的对应设置的当前取值。然后通过一个循环获得当前取值在SSelection数
+    组中的位置，并将数组序列下一个取值提取出来，交给SetSettingValue函数。
+    SetSettingValue函数会通知CSettingServer改变设置的值。
+
+	注意CQuickSetting与CRollPaper并无依赖关系，所以将CRollPaper刷新这件
+    事，是由CQQReaderAppUi来完成的。具体代码可以参看CQQReaderAppUi的
+    ToggleQuickSetting函数。
+** 优化：后台计算高度
+   读取文件是一个很费时间的操作，尤其是当文件很大的时候。这段时间的瓶颈
+   不在文件的访问，也不在文件的分析，而在于高度的计算。究其原因，高度计
+   算需要反复调用字体类的TextWidth方法，非常费时。
+
+   而高度信息的作用仅仅有两个：Section的排版和滚动条的高度。如果一个有
+   1000个Section的电子书，今天只看前5个Section，在载入时要把1000个
+   Section的高度全部计算出来是没有必要的。
+
+   所以就有了后台计算高度这个优化：载入文件后，只计算出需要显示的
+   Section的高度，而其它的Section的高度则放在后台进行计算。这样的优化在
+   Word等字处理软件中经常被使用。
+*** 计算高度的后台纤程(Fiber)
+	后台操作在Symbian中是用Active Object来实现的。在计算高度
+    时，QQReader也使用了Active Object作为后台的纤程。Section的高度是文
+    档类的一部分，所以计算高度的任务应该由CRollPaperDoc类来完成。该类中
+    的iBackgroundLoad对象，便是用来计算高度的Active Object。其运行函数
+    为BackgroundLoad。
+
+	注意由于纤程不会被中断，所以如果需要不影响用户操作，就必须将计算高
+    度任务分成小份。每一次BackgroundLoad调用就是执行一小份Section的高度
+    计算。在QQReader中，BackgroundLoad一次最多计算5个Section的高度。
+*** 滚动条的更新
+	在计算完高度之后，需要通知滚动条更新，以让用户可以通过滚动条看出载
+    入的过程。CRollPaper类的SetContentHeight方法就是用来做这件事情的，
+    只要将已经计算完的Section总高度递给这个方法，就不用关心进度条具体的
+    操作了。
+*** 来自书签的挑战
+	当打开一个电子书文件时，用上文中描述的方法已经可以完美地完成后台计
+    算高度的任务了。但是当用户选中以前保存的一个书签时，问题就变得复杂
+    了起来。
+
+	- 这个书签可能在文件的临近末尾；
+	- 计算书签点之前的Section可能需要一分钟时间；
+	- 可能用户根本不需要向前翻，计算之前的Section根本没有意义；
+	- 但是也有可能用户会向前翻一到两页，回忆上次已经看过的内容。
+
+	计算书签点之前的Section高度似乎是必要的，否则滚动条的位置与用户的视
+    角关系就非常复杂；而一下子全部将书签点之前的Section高度计算完可能不
+    是用户友好的，也是不可取的。
+
+	如果在这时候也要进行后台计算高度，就需要一些特别的技巧。
+**** 锚点(Anchor)：欺骗View的方法
+	 最大的问题莫过于在书签点之前的Section高度还没有计算出来时，如何传
+     递滚动条高度和位置。在这里引入一个锚点的概念，以解决这个问题。
+
+	 当用户打开一个书签时，书签位置所记录的Section就被记录成一个锚点。
+     在CRollPaperDoc中用iAnchor表示。这样一来，所有的Section位置，都可
+     以看成是相对于锚点的位置加上锚点的绝对位置作为偏移量。这个相对位置
+     用iOffset数组来表示，而锚点的绝对位置用iAnchorSecPos表示。
+
+	 在最初的时候，锚点的绝对位置就是书签点的偏移量(记得文档的位置是用
+     Section+偏移量来表示的)；而随着书签点之前的Section的高度被不断地计
+     算出来，这个偏移量不断地变大。当书签点之前所有Section的高度全部被
+     计算出来时，就可以抛弃锚点机制，直接使用每个Section的绝对位置了。
+**** 锚点移动时，调整滚动条位置
+	 当书签点之前的Section被计算出来时，滚动条的总高度也同时增加了
+     (CRollPaper的SetContentHeight)。这时候必须要调整滚动条的位置，否则
+     刷新界面时显示的就不是原来的位置，用户就会感到困惑。
+
+	 记得滚动条滚动的最小单位是Segment，也就是1/4屏幕。如果被计算出的
+     Section高度不是Segment的整数倍，无论如何调整滚动条的位置，都没有办
+     法做到与计算前的位置一模一样。为了不让用户感到困惑，在调整滚动条
+     时，CRollPaperDoc会将锚点的绝对位置交给CRollPaper，让它来进行调
+     整，以保证显示的一致性。该函数就是TopExtend。
+
+	 该函数只接受一个参数，就是增加新计算的Section高度之后的锚点绝对位
+     置。它会进行合理安排，调整滚动条位置和高度，并返回一个偏移量，用于
+     对锚点绝对位置进行调整。
+**** Section的Bitmap
+	 当用户载入书签时，可能已经有一部分Section已经被计算过了。如果重新
+     对这些Section进行高度计算，就是浪费时间。所以在CRollPaperDoc中，保
+     存了一份Section的Bitmap(Boolean数组)，表示Section是否已经被计算过。
+     这个Bitmap就是iSecLoaded。
+**** 后台纤程的三个阶段
+	 由于书签跳转，后台纤程对Section高度的计算也需要有个顺序。一个合理
+     的顺序是先从书签点向前计算到头，然后再从书签点向后计算到尾。在
+     CRollPaperDoc中，iLoadTop表示前向计算到的位置，而iLoadBottom表示后
+     向计算到的位置。
+***** 前向计算
+	  当iLoadTop不为0时，进行前向计算。一次计算最多5个Section，然后退出。
+***** 锚点消除
+	  当iLoadTop为0，且存在锚点时，进行锚点消除：
+	  - 调用TopExtend，调整锚点位置
+	  - 删除锚点信息
+	  - 调整所有Section的iOffset，使其相对于文档头
+	  - 重设滚动条高度
+
+	  注意在进行锚点消除后，界面刷新时很可能会有不超过Segment高度的偏移。
+      这是难以避免的，也是可以忍受的。
+***** 后向计算
+	  当iLoadBottom不为最后一个Section时，进行后向计算。一次计算最多5个
+      Section。
+* 文件格式列表
+** Text
+   文本文件是最基本的文件格式，它的处理主要需要关心编码的问题。处理文本
+   文件的文档类为CTextDoc。
+*** AppendTextL
+	该函数是处理文本文件的核心函数。该函数的行为很简单，反复调用
+    SkipEndline和FindEndline以获得没有换行的文本段，然后通过位置信息生
+    成RFileTextSection并插入Document中。
+
+	注意该函数使用了EMaxTextSectionLen常量，以限制文本段的最大长度。因
+    为显示是以Section作为基本单位的，太大的Section会导致灾难性的用户体
+    验。最糟糕的情形出现在编码设置错误，导致无法获得换行符的时候。
+*** FindEndline
+	该函数寻找aPos点之后的下一个换行符，存于aPos中返回。注意该函数还包
+    括aEnd参数，表示寻找的界限。该界限会在CTextDoc的子类中使用。
+
+	该函数还对于Unicode编码作了特殊处理。因为Unicode编码是双字节，单字
+    节搜索'\n'并不能搜到正确的换行符。
+*** SkipEndline
+	类似FindEndline，但是该函数寻找的是下一个非换行符。
+** TCR
+   TCR格式是一个非常简单的压缩格式，它的压缩方法就是最简单的字符替换。
+   每个字节的256种可能，对应字典中的256个串。将字典读出后进行对照翻译，
+   就可以正确解码了。该文件格式对应的文档类是CTCRDoc。
+
+   由于解码后的文件就是文本文件，所以CTCRDoc继承了CTextDoc，并且只重载
+   了OpenFileL函数。这样让父类其它方法看起来和一个正常的文本文件就没有
+   区别。
+*** 字典的存储
+	CTCRDoc中使用一个大小为256的字符串数组iDict来表示字典。
+*** 解码的流程
+	- 创建一个临时文件作为解码后的文本文件
+	- 检查文件头是否是标示"!!8-bit!!"
+	- 读取字典内容，存储在iDict中
+	- 对文件每个字节，进行字典查找，并写入临时文件
+	- 将临时文件作为父类的文本文件打开
+** UMD
+   UMD是一个很复杂的格式，也没有官方的文档。在这里我描述的UMD格式，是通
+   过对文件的分析猜测，以及网上类似的分析猜测的综合结果。CUMDDoc是对
+   UMD格式进行解析的文档类。
+*** UMD的文件头
+	UMD文件的前四个字节是0xde9a9b89，用来检测文件类型的正确性
+*** UMD的基本块
+	UMD有两种基本块：
+**** #块
+	 #块一般用于存储设置信息，由一个#起始，然后跟着2字节的设置类型，
+     然后是一字节的0和一字节的块大小。注意块大小包含#以及设置类型等部
+     分，也就是在块大小len之后，跟着len-5字节的内容。
+**** $块
+	 $块一般用于存储文本信息，由一个$起始，然后跟着4个字节的
+     id(checksum)，再跟着4个字节的块大小。与#块一样，块大小也是包含前面
+     字段的。所以大小字段后的内容长度为len-9。
+*** UMD内容的组织形式
+	UMD电子书是由很多章节组成的，每章节有一个标题和一段正文。在存储
+    上，UMD将所有的标题合在了一起，保存在一个$块中；而所有的正文也被合
+    在了一起，保存在一个或多个$块中；而每章节的正文的分割点，作为一个数
+    组，也保存在一个$块中。
+
+	保存的顺序为：
+	- 一个#块(ESectionOffsets)记录章节正文分割点的$块的id
+	- 一个$块，包含所有正文分割点，其中章节的个数为该块大小的1/4
+	- 一个#块(ESectionTitles)记录标题的$块的id
+	- 一个$块，记录所有的标题；每个标题先用一个字节表示长度，然后是
+      Unicode的标题内容。
+	- 一个#块(EContentLength)记录正文总长度
+	- 一个或多个$块，每块是压缩后的正文
+
+	查看CUMDDoc::ParseFileL可以看到这个不小的状态机，状态保存在
+    secTitle变量中。
+*** UMD的内容压缩
+	UMD对正文进行了压缩，好在解压算法Symbian已经提供。对于这一块的详情
+    我也不是非常了解，这一块内容是参照其它解析UMD文档的Symbian代码。详
+    见ParseFileL中ETitleDone分支。
+*** 将内容转换成Section
+	当所有内容解析完毕后，就可以对每一个章节，依次添加标题和正文。其中
+    标题是已经在内存中的文字，而正文则是解压缩时存放在临时文件内的。这
+    里使用了父类CTextDoc中的AppendTextL函数，对于每一个章节的正文分割换
+    行符并插入Section。
+** PDB
+   PDB文件全称是Palm Database。它其实是Palm系统中的数据库文件，各种类型
+   的文档都可以用PDB来保存。然而，Palm的电子书使用得很广泛，所以PDB就代
+   指了用Palm Database存放的电子书文件。
+
+   PDB文件是一个外包装，内层可以有多种格式。用于电子书的格式，最常见的
+   有两种：PalmDOC和MobiPocket。解析这两种电子书格式的文档类为CPDBDoc。
+*** Palm Database包装
+	PDB文件格式首先由应用程序自己包装，然后再由Palm Database进行包装。
+    所以在解析的时候，首先根据Palm Database的格式将其解包到一个临时文
+    件，然后交给处理下一层的代码。
+
+	解析Palm Database包装的代码为ParsePDBL。Palm Database的格式可以参照
+    "Palm File Format Specification"，这里只作一个大致的介绍。
+**** 文件组织形式
+	 Palm Database文件是由很多条记录组成的，这些记录一个接一个地衔接起
+     来，形成解包之后的文件。
+
+	 在文件头中，首先标明解包后文件的标示符。其中PalmDOC的为
+     "TEXtREAd"，而MobiPocket的为"BOOKMOBI"。文件头的某个位置记录着记录
+     的条数，在解析中是必不可少的。然后就是记录列表，跟着每一个记录在文
+     件中的偏移地址。最后是每一条记录，根据偏移地址可以访问到。
+
+	 两种电子书格式，都使用第一条记录作为电子书的设置信息。在设置信息中
+     比较重要的一条就是压缩标记。当压缩标记设为2时，代表开启压缩。每一
+     条记录的内容是通过LZ77算法压缩过的。
+**** Palm Database的压缩
+	 解析一条记录的函数是ParseRecordL，其中也包含了解压缩的算法。解压缩
+     算法大致思路如下：
+	 - 维护一个滑动窗口表示最近解压缩出的2048字节内容
+	 - 收到空格时，表示该空格与下一个字节都是未被压缩的
+	 - 收到0x01~0x09时，表示下n个字节是未被压缩的
+	 - 收到>=0x80时，该字节低7位和下一字节形成了对滑动窗口的引用
+	 - 其它字节都是未被压缩的
+
+	 具体可以参见http://wiki.mobileread.com/wiki/PalmDOC
+*** PalmDOC电子书
+	PalmDOC电子书在解包后其实就是带压缩的文本文件。而解压缩步骤在解包时
+    已经完成了，所以这里只需要将解析出来的临时文件作为文本文件交给父类
+    CTextDoc就可以了。
+*** MobiPocket电子书
+	MobiPocket电子书是一个XML文档，以标记语言来展现电子书的内容。而该格
+    式的Specification是不公开的，这里只能做到将正文取出来显示。
+**** 电子书设置信息
+	 MobiPocket电子书的设置信息和PalmDOC的设置信息是兼容的，所以都放在
+     Palm Database解析时完成。唯一需要注意的一点就是TailingEntry。
+**** TrailingEntry
+	 MobiPocket电子书是UTF-8的，也就是说字节的边界很可能不是字符的边
+     界。而Palm Database在打包时，很可能使得一条记录尾部没有形成一个完
+     整的字符，对某些解析程序带来困难。所以引入了TrailingEntry的概念。
+
+	 每个Record有一个TrailingEntry值，表示该记录为了补足完整的字符，额
+     外添加了几个字节。这几个字节与下一条记录的头部是重复的，需要剔除其
+     中的一份。
+
+	 对TrailingEntry的解析也在ParsePDBL函数中。
+**** XML解析
+	 在ParseFileL中，实现了对MobiPocket格式XML的解析。由于缺乏文档，只
+     能将p标记中的正文内容取出来作为纯文本。所以并没有必要使用一个完整
+     的XML解析器，只需要对标记与引号做一下处理就可以完成任务了。
+
+	 解析的实现是一个状态机，inBrace/inSingleQuote/inDoubleQuote/inP是
+     状态。当inBrace为假，inP为真时，表示正文内容。在这里，解析的结果存
+     储在第二个临时文件中，构建RFileTextSection存入文档。
+** RSS
+   RSS其实就是由XML修饰的一些文本，所以关键部分在XML解析。Symbian提供了
+   XML解析的库，接口和SAX很类似。
+
+   CRssDoc类就是用来处理RSS订阅的文档类，它同时也是
+   Xml::MContentHandler，XML解析时需要的监听器。
+*** OnContent
+	该函数是MContentHandler的接口函数，在解析到文本内容的时候会被调用。
+    它的工作是在需要的时候，收集文本，并保存在iContentPieces数组中。
+*** OnStartElement
+	该函数是MContentHandler的接口函数，在XML解析Start Element时会被调用。
+    该函数的主要作用是记录下channel/item/title/description标记的出现。
+    当在channel中出现了一个title，它的内容就是RSS订阅的标题；当item中出
+    现了一个title，它的内容就是一条RSS记录的标题；当item中出现了
+    description，则它的内容是一条RSS记录的内容。
+
+	该函数还有一个重要作用是检测RSS源的版本，确保为RSS 2.0，以免出现错
+    误。
+*** OnEndElement
+	该函数配合OnStartElement，并在title/description结束的时候调用
+    MergeAndAppendL添加Section。
+*** MergeAndAppendL
+	该函数用于将iConentPieces中收集到的文本汇合成一个Section，并插入文
+    档中。
+** Zip文件支持
+*** CZipDoc
+	Zip文件的文档类使用了Mixin类的设计模式。该模式的含义是在大量现有类
+    上添加同样的功能。Mixin类的C++实现用到了类模版。将需要添加的功能加
+    入CZipDoc模版类，就可以对任意文档类应用同样的功能。
+
+	CZipDoc类本质上是某一个文档类的子类。它继承了指定的文档类，并赶在文
+    档类打开文件之前，使用CZipServer解压出其中的文件，并将文档类中的文
+    件名改写成解压出的文件名。
+
+	这样一来，短短的40行代码，就可以解决所有的文档类。
+*** CZipServer
+	该工具类使用Symbian提供的Zip文件操作接口，对Zip文件进行读取和解压。
+**** 解压文件
+	 OpenZipL方法可以将压缩文件中的第一个文件，解压至临时文件，并返回文
+     件名。
+**** 查看文件后缀
+	 FetchExtInZipL方法可以查看压缩文件中第一个文件的后缀名，用于判断电
+     子书的格式，选择合适的文档类。
+**** 释放解压出的临时文件
+	 Release方法，会调用下一节描述的CTempServer的Release方法。
+** CTempServer
+   在文档类中，频频用到这个工具类。它的作用是创建并管理临时文件。
+*** 临时文件夹
+	临时文件夹的位置处于SessionPath下的Temp文件夹。SessionPath是
+    Symbian给每个程序创建的独立的文件夹，在下面的文件都是归自己程序私有
+    的。所以将这里作为临时文件的存放位置是很合适的。
+*** 启动时清空临时文件夹
+	因为这个工具类是Singleton，所以在构造函数中清空临时文件夹是一个比较
+    明智的决定。在ConstructL函数中描述了这一行为。
+*** 创建临时文件
+	CreateTempFileL函数用于创建一个临时文件，并返回文件名。Symbian的文
+    件接口可以在指定目录下打开一个临时文件，所以只需要调用这个接口，记
+    录下文件名，并把打开的文件关闭就可以了。
+*** 回收临时文件
+	RecycleTempFile函数用户回收一个临时文件。行为仅仅是删除这个文件。临
+    时文件不被回收是无害的，因为在下次启动时，CTempServer会删除临时文件
+    夹下的所有文件。
+* 离线RSS
+  离线RSS功能，电脑端是由Java实现的。电脑端软件通过用户提供的RSS列表，
+  从网络上抓取RSS，并与原来的RSS文件智能合并。最后将RSS文件存储在SD卡
+  上，并同时存储RSS的列表。
+** 电脑端
+*** 界面
+	电脑端的软件，界面是用Javax.Swing来实现的。RssFetcher类是负责绘制界
+    面的。在该类的构造函数中，首先获得SD卡的盘符，然后绘制了一个Swing窗
+    口，加入了一个表格控件，并增加了三个按钮。
+**** 获得SD卡的盘符
+	 通过File.listRoots()，可以获得Windows系统中所有的盘符。RssFetcher
+     在启动之前，会弹出一个JOptionPane来提示用户选择SD卡所在的盘符。
+**** 表格控件
+	 表格控件是用来列出SD卡中RSS源的列表的。它是由JTable和自定义的
+     TableModel：StorageInformation来实现的。在StorageInformation中，实
+     现了一个3列的表格：标题/URL/文件名。除了实现TableModel规定的接口
+     外，还实现了如下函数：
+***** readStorage
+	  从SD卡中读取RSS列表文件。注意Symbian读取文件时，最方便的编码是
+      UTF-16(Big Endian)，所以这里需要用这种格式保存/读取列表文件。
+      readString和writeString是读写该编码的函数。
+***** writeStorage
+	  向SD卡中写入当前的RSS列表
+***** updateAll
+	  循环对每条RSS记录，进行更新操作
+***** generateURL
+	  通过URL字符串，生成URL对象
+**** 按钮
+	 界面的按钮一共有三个，分别代表增加RSS源，删除RSS源和更新所有RSS源。
+*** RSS文件合并
+	通过网络更新离线RSS，需要将从网络上取得的最新的RSS，与文件中已有的
+    RSS进行合并。借助Java的DOM类，合并RSS是一件非常容易的事
+    情，RssCombiner类实现了这个功能。
+**** combine
+	 该函数描述整个合并过程，根据构造函数中给出的文件和URL，对文件进行
+     合并。流程如下：
+	 1. 对于文件内的RSS和网络RSS，分别创建Document对象
+	 2. 使用Transformer将文件流和网络流，转换成Document
+	 3. 调用merge将两个Document对象合并
+	 4. 使用Transformer将Document转换成文件流
+**** merge
+	 该函数流程如下：
+	 1. 分别对两个Document调用checkRss得到RSS内容的channel部分的
+        Element
+	 2. 获得从文件流取得的RSS的第一条(最新的)信息的guid
+	 3. 搜索从网络流中取得的RSS中是否有同样guid的信息
+	 4. 将找到guid之前的所有信息，插入文件流对应的Document中(如果没有找
+        到，则全部插入)
+**** checkRss
+	 该函数检查RSS的版本和格式，并将第一个channel(可以认为是唯一的)返回。
+** 手机端
+   离线RSS在手机端其实就是非常常规的RSS后缀文件。唯一值得注意的是
+   QQReader以书签的形式保存RSS的列表，可以参看前文CStorageBookmark一节。
+* 资源列表
+** DIALOG
+*** r\_memory\_selection\_dialog
+	选择文件对话框
+*** r\_wait\_dialog
+	文件打开等待对话框
+*** r\_bookmark\_dialog
+	书签窗口对话框，对应CBookmarkDialog类
+*** r\_delete\_bookmark\_confirm
+	删除书签确认对话框
+*** r\_bookmark\_need\_name\_query
+	确认书签是否需要书签名的对话框
+*** r\_change\_codepage\_note
+	当设置txt文件的编码发生改变时，提示用户重新打开txt文件的对话框
+*** r\_config\_setting\_dialog
+	设置对话框，对应CSettingItemListDlg类
+** MENU\_PANE
+*** r\_no\_file\_menu
+	没有打开文件时的菜单项
+*** r\_file\_opened\_menu
+	打开一个普通文件时的菜单项
+*** r\_rss\_net\_menu
+	打开一个在线RSS时的菜单项
+*** r\_bookmark\_menu
+	在可修改的书签对话框中的菜单项
+*** r\_bookmark\_ro\_menu
+	在只读书签对话框种的菜单项
+** ARRAY
+*** r\_font\_size\_name
+	字体大小的名称列表
+*** r\_font\_size\_value
+	字体大小的值列表
+*** r\_color\_name
+	文字颜色的名称列表
+*** r\_color\_value
+	文字颜色的值列表
+*** r\_backcolor\_name
+	背景颜色的名称列表
+*** r\_backcolor\_value
+	背景颜色的值列表
+*** r\_encoding\_name
+	编码的名称列表
+*** r\_encoding\_value
+	编码的值列表
+*** r\_quick\_setting\_items
+	供CQuickSetting使用的设置项列表
+* 类列表
+** bookmark
+*** CBookmark
+	书签类的公共父类
+*** CBookmarkBox
+	可修改的书签类，对应某个文件内的所有书签
+*** CRssNetBookmark
+	在线RSS的书签，每一条记录对应一个URL
+*** CStorageBookmark
+	离线RSS的书签，每一条记录对应一个SD卡上的rss文件；注意这是一个只读书签
+*** TPreDefinedBookmarkId
+	在持久化存储中，存储书签需要跳过的Uid(例如RSS书签/设置)
+** document
+*** CPDBDoc
+	PDB文件的文档类
+*** CRollPaperDoc
+	文档类的公共父类
+*** CRssDoc
+	rss文件的文档类
+*** CRssNetDoc
+	在线rss的文档类
+*** CTCRDoc
+	TCR文件的文档类
+*** CTextDoc
+	文本文件的文档类
+*** CUMDDoc
+	UMD文件的文档类
+*** CZipDoc
+	压缩文件的模版类，套上任何一个文档类后成为一个压缩文件文档类
+*** RFileTextSection
+	在文件中的文本Section
+*** RPaperSection
+	Section的公共父类
+*** RTextSection
+	在内存中的文本Section
+*** TDocPosition
+	存储文档位置信息的类
+** service
+*** CCharConverterServer
+	提供编码转换功能的工具类
+*** CLogServer
+	提供日志记录功能的工具类(调试用)
+*** CSettingServer
+	读取/保存设置的工具类
+*** CTempFileServer
+	提供临时文件的工具类
+*** CZipServer
+	对zip文件进行解压缩的工具类
+** CBookmarkDialog
+   书签窗口对话框类
+** CBufferManager
+   UMD文件解压缩时需要用到的Buffer类
+** CQQReaderAppUi
+   QQReader的UI类
+** CQQReaderApplication
+   QQReader的Application类
+** CQQReaderDocument
+   Symbian生成的Document类
+** CQQReaderSettingList
+   设置窗口的SettingList类
+** CQuickSetting
+   实现快速设置功能的类
+** CSettingItemListDlg
+   设置窗口的对话框类
+** CRollPaper
+   QQReader的View类
+** CScrollControl
+   实现滚动条功能的View类，CRollPaper的父类
+** TScrollModel
+   保存滚动条信息的类
+

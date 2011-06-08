@@ -1,0 +1,244 @@
+#+STARTUP: content
+
+Intel虚拟化培训
+
+* Xen and the Art of Virtulization
+  mailto:ian.pratt@xen.org
+** Overview
+   - support new cpu, chipset, smart io
+   - os para-virtulization
+	 win, redhat, novell, sun
+** Why Virtulization
+   - reduce mess by multi-app
+	 security hole on some app, won't explode to others
+	 xen: one app per x86 server
+   - server consolidation
+	 typical cpu utilization: 5~15%
+   - easy to manage
+   - avoid vm relocation
+	 xen: dynamically re-balance workload
+** Virtulization security
+   - Bad: attack will exploit
+   - Good: Xen is smaller, more defensible than a OS
+   - Firwall/IDS/malware scanner more robust
+   - hardening OS with memory control(root-kit)
+** Network interface
+   VM0: backend with native device, VMn: frontend device
+** IOMMU
+   - Direct Device Assignment
+   - Every os can be assigned to native device(s)
+   - NIC presents itself as multiple PCI devices
+** Falut tolerance
+** Virtulization on Cell phone
+   - 1 for radio
+   - 1 for softwares
+   - 1 for downloading things
+** Xen Cloud Platform(XCP)
+   http://www.openvswitch.org
+* Evolution of Distributed Operation Systems and Virtualization
+  Boring...
+** History
+** Microkernel based
+** Current generation and virtualization
+** Next generation
+* Virtualization Overview
+** Layers of Virtualization
+   - Instruction Set Architecture(ISA)
+   - OS ABI
+   - DLL ABI
+   - High Level Language
+** Virtual Machine Monitor(Hypervisor)
+*** Essential characteristics
+	- Equivalence
+	- Isolation
+	- Efficiency
+	  Rule out simulator
+*** Requirement
+	- Protect self from guest
+	- Isolate guest softwares
+	- Present a platform interface
+** Virtualizable ISA
+   - Sensitive instruction
+	 All about resource
+	 + Control sensitive
+	   Config resource
+	 + Behavior sensitive
+	   Depend on config
+   - Privileged instrction
+   - SI is a sub set of PI --> Virtualizable
+** Approaches
+   - OS-level virtualization
+	 1 kernel-space with n user-space, container
+   - Full virtualization
+	 Hardware-assisted
+	 Binary translation
+   - Partial virtualization
+	 Subset of all hardware features
+   - Paravirtualization
+	 Modify guest OS, Cooperative virtualization
+** Hardware-assisted virtualization
+   - Fix instruction hole
+   - Simplfy vm code
+   - Improve performance
+*** Intel Virtualization Technology(VT)
+**** Virtual Machine Extensions(VMX)
+***** VMX root operation
+	  - ring 0-3
+	  - fully privileged
+***** VMX non-root operation
+	  - ring 0-3
+	  - not fully privileged
+	  - entered by vmm
+**** VM entry
+	 - VMLAUNCH
+	 - VMRESUME
+**** VM exit
+	 - external events
+	 - exceptions
+	 - some instructions
+*** Enlighten OS for virtualization
+** Memory virtualization
+*** Challenges
+	- OS expect memory start from 0
+	- OS expect memory contiguous
+*** Page frame allocation
+	- Partitioning
+	- Contents based sharing
+	- Ballooning
+	  Balloon driver on Guest OS, steal memory from Guest to Hypervisor
+	- Host swapping
+*** MMU Virtualization
+	- Direct page table
+	- Vitrual TLB
+	- Shadow page table
+	- Extended page table
+	  Another level of page table
+** I/O Virtualization
+*** Direct assignment
+*** Single Root I/O Virtualization(SR-IOV)
+	1 NIC --> 1 PF + n VF
+*** Virtual Machine Device Queue(VMDq)
+	- Software switch
+	- Hardware switch
+** Reference
+   Extending Xen with Intel Virtualization Technology
+   http://www.intel.com/technology/itj/2006/v10i3/3-xen/1-abstract.htm
+* CPU Virtualization
+  Boring...
+* I/O Virtualization
+** Software Emulation
+*** Catch
+**** VMCS I/O bitmap
+	 which IO port access will cause VM Exit
+**** VMM shadow page table/EPT table
+	 trap MMIO access
+*** DMA Emulation
+*** Interrupt Emulation
+	Virtual PIC -> Virtual CPU
+	VM Entry Interrupt Injection
+	interrupt when VM Entry calls
+*** PIC Discovery/Configuration
+	- PCI device: (BUS, Device, Function)
+	- Software enumerate device through configuration space
+	- IO port/MMIO address is configurable
+** Para-virtualization
+   - Improve I/O performance
+   - VMM presents a virtual device
+	 Frond-end/Back-end Driver
+   - Optimization
+	 Batched I/O
+	 Shared memory
+** Direct I/O
+   Assign physical device to a VM directly
+*** DMA Operation
+	Memory mismatch due to memory layout mismatch
+*** DMA Remapping, implemented by VT-d
+	Device assignment structure
+** SR-IOV
+*** Virtulization friendly device
+	- Device can shared by VMs
+	- Start with one Physical Function(PF)
+	- Replicate resources by Virtual Function(VF)
+* Extended topics on virtualization
+  CLOSED: [2009-11-22 日 15:22]
+** 1.0 consolidation
+*** Consolidate multiple servers into fewer with virtualization
+**** Reduce CapEx OpEx and energy
+**** Chances
+***** Server may have low resource usage
+***** may tie to different resource types
+***** may hav interleaved peak usage
+**** DONE 一个机器跑一个应用，才能保证性能
+	 CLOSED: [2009-11-22 日 13:57]
+***** Syscall更薄，而已
+***** 未来可能会做到真实的Isolation
+*** Performance factors
+**** Exclusive res ctrl vs Time0shared res ctrl
+**** Software emulation overhead
+	 trap-and-emulate
+	 - faster hardware
+	 - proactive enlightment from VM
+	 - Dedicated resources
+**** Insufficient resource
+**** Cross-Vm interfrence
+***** Resource contention
+***** Internal state pollution(cache, TLB)
+**** VMM inefficiency
+**** Distorted premise
+***** Cirtical section preempted by VMM
+** 2.0 flexible management
+*** VM mobility
+**** Live migration
+	 1. Starts when VM is hosting service
+		Copy whole memory
+	 2. Live migrate dirty pages
+		Iterative and convergent
+	 3. Stop VM on host-A
+		Rest dirty pages
+		Virtual device/CPU state
+	 4. Resume VM on host-B
+**** Key concerns
+	 - Service shutdown duration
+	 - Total migration duration
+**** Challenges
+	 - Memory-intensive workload
+	 - Policy to trigger migration
+	 - Hardware I/O acceleration(Direct I/O, SR-IOV)
+*** Resource metering
+*** Energy efficiency
+*** High availability
+**** Ensure service continuity
+**** Reliability, Availability, Servablilty(RAS)
+	 - Alert and fix hardware failure
+	 - Reduce failover frequency
+**** Software HA
+	 - Restart VM on server if VM itself fails
+	 - Virtual lockstep
+	   Primary VM and Backup VM
+	   Running same things
+	   Synchronize events
+	 - Fast check-pointing
+** 3.0 enterprise cloud
+*** SaaS PaaS DaaS IaaS WebHosting ITaaS Utility
+*** Challenges
+**** QoS/SLA(Service level agreement)
+	 - Translate SLA into resource budget
+	 - Ensure agreed level of quality
+**** Security/Trust
+	 - Competitors may be hosted on same node
+	 - Fully virtulized environment
+	   Low entrophy
+**** Inter-operability
+**** Virtual infrastructure similarity
+	 - Network properties, ACL...
+** Client virtualization
+*** Remote desktop virtualization
+*** Local desktop virtualization
+**** User activities in local desktop
+**** Extra facility with virtual appliance
+***** Secure image
+***** Network inspection
+*** Embedded virtualization
+**** Consolidate RTOS and GPOS
+**** Security isolation
+**** Simplify platform diversity

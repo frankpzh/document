@@ -1,0 +1,6 @@
+* Cannot retrieve lib info, fix fetchlib.py
+  SCHEDULED: <2000-01-01 >
+Traceback (most recent call last):
+  File "/usr/local/bin/fetchlib.py", line 18, in <module>
+    session = m.group(1)
+AttributeError: 'NoneType' object has no attribute 'group'

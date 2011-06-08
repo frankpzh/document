@@ -1,0 +1,100 @@
+html {
+	background: #D5DADD url(bg.jpg) repeat-x scroll left top;
+	font-family: consolas,verdana,serif,ËÎÌå;
+	font-size: 13px;
+}
+
+#whole {
+	margin: auto;
+	padding: 30px 0px 10px 0px;
+	width: 700px;
+	background: white;
+}
+
+h1,h2,h3,h4 {
+	font-family: verdana,serif,Î¢ÈíÑÅºÚ,ËÎÌå;
+}
+
+#table-of-contents ul {
+	padding: 0px 25px;
+}
+
+.title {
+	background: #c7ec55;
+	font-size: 24px;
+	padding: 15px 30px;
+	margin: 0px;
+	text-align: left;
+}
+
+h2 {
+	font-size: 18px;
+	margin: 16px 0px;
+}
+
+h3 {
+	font-size: 16px;
+	margin: 12px 0px;
+}
+
+h4 {
+	margin: 10px 0px;
+}
+
+#table-of-contents {
+	border: 1px solid black;
+	margin: 30px 30px;
+	padding-bottom: 10px;
+}
+
+#table-of-contents h2 {
+	margin: 0px;
+	padding: 10px;
+}
+
+#table-of-contents ul {
+	margin: 0px;
+}
+
+p {
+	padding: 0px 10px;
+	margin: 8px 5px;
+	text-indent: 2em;
+}
+
+li p {
+	padding: 0px 0px;
+	margin: 8px 0px;
+	text-indent: 0px;
+}
+
+.outline-2 {
+	margin: 0px 30px;
+}
+
+.outline-2 ul {
+	padding: 0px 40px;
+	margin: 8px 5px;
+}
+
+img {
+	border: 0px;
+	vertical-align:middle;
+}
+
+#postamble {
+	margin: 0px 30px;
+	border-top: 1px solid black;
+}
+
+#postamble p {
+	margin: 0px;
+	padding: 0px;
+	font-size: 12px;
+	color: #787878;
+	text-indent: 0px;
+}
+
+.todo,.done {
+	font-size: 12px;
+}
