@@ -4,6 +4,7 @@
 (require-maybe 'maximize-emacs)
 (require-maybe 'utility)
 (require-maybe 'taglist)
+(require-maybe 'diff-color)
 
 ;; Desktop save
 (when (require-maybe 'desktop)
