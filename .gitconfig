@@ -9,3 +9,9 @@
 [user]
 	name = Frank Pan
 	email = frankpzh@gmail.com
+[imap]
+        Folder = "[Gmail]/Drafts"
+        Host = "imaps://imap.gmail.com"
+        User = "frankpzh@gmail.com"
+        port = 993
+        sslverify = false
