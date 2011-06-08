@@ -1,0 +1,134 @@
+\documentclass[11pt]{res} % default is 10 pt
+
+\usepackage{helvetica} % uses helvetica postscript font (download helvetica.sty)
+\usepackage[colorlinks,urlcolor=blue]{hyperref}
+
+\setlength{\textheight}{9.5in} % increase text height to fit resume on 1 page
+\newsectionwidth{0pt}  % So the text is not indented under section headings
+
+\begin{document} 
+ 
+\name{Frank Pan/Zhenhao Pan\\[12pt]} % the \\[12pt] adds a blank line
+                                     % after name
+
+\address{{\bf PRESENT ADDRESS} \\ Room 503, 26\# \\ Tsinghua
+  University \\ Beijing China}
+
+\address{{\bf CONTACTS} \\ Email:
+  \href{mailto:frankpzh@gmail.com}{frankpzh@gmail.com} \\ Mobile:
+  (+86) 1342-630-6840 \\ Blog: \href{http://frankpzh.wordpress.com/}{http://frankpzh.wordpress.com/}}
+
+\begin{resume}
+
+\section{SKILLS}
+
+\begin{itemize} \itemsep -2pt
+\item Systems: Linux kernel, Xen, Windows Research Kernel, Windows CE, Android, Symbian
+\item Languages: C, Python, Makefile, C++, Java, Elisp, Bash, Javascript, VHDL
+\item Tools: git, svn, emacs, vim, grep/sed/awk, binutils
+\end{itemize} 
+
+\section{INTERNSHIPS}
+Software Engineer, Intel China, Shanghai China \\
+Live migration support for SR-IOV NIC on Xen
+
+\begin{itemize} \itemsep -2pt
+\item Save/restore the internal state of a network card (c, linux kernel)
+\item Hacked Xen to support migration with pass-through device (c, python, xen)
+\item Rapid Checkpointing (Remus) is also supported
+\end{itemize} 
+
+Software Engineer, Next Mobile Web, Mountain View, Remotely from China \\
+Tab bar support of Android Web Browser (Java, Android 1.5)
+
+\begin{itemize} \itemsep -2pt
+\item Support switching tabs with drag
+\item Support an additional URL bar
+\end{itemize} 
+
+Software Engineer, Microsoft Research Asia, Beijing China \\
+Kernel code injector (KInjectToolkit) for Windows Research Kernel (WRK)
+
+\begin{itemize} \itemsep -2pt
+\item Dynamically load pre-compiled binary code from user space into kernel space (c, WRK)
+\item Designed a toolkit for generating binary code from c source programs (c, makefile)
+\item Collected by Aimin Pan's book as a tool
+  (\href{http://www.phei.com.cn/windowskernelbook/zhu\_ye.html}{http://www.phei.com.cn/windowskernelbook/zhu\_ye.html})
+\end{itemize} 
+
+\section{PROJECT EXPERIENCES}
+Chinese character support on frame buffer console
+
+\begin{itemize} \itemsep -2pt
+\item Hack Linux kernel on console driver (c, UTF-8)
+\item Load font data from user space
+\end{itemize}
+
+QQReader: Ebook reader on Symbian S60  (c++, symbian)
+
+\begin{itemize} \itemsep -2pt
+\item E-book format: TXT, TCR, UMD, PDB, RSS, ZIP
+\item Several UI optimizations
+\item It’s the prototype of the incoming mobile e-book reader of Tencent™
+\end{itemize}
+
+Porting Windows CE on OpenMoko cell phone
+
+\begin{itemize} \itemsep -2pt
+\item Completed a board support package (BSP) and drivers necessary (c, ARM)
+\item OpenMoko (Neo FreeRunner): Samsung 2442B SOC (ARM920T core), S-Media 3362
+\item Bachelor thesis
+\end{itemize}
+
+StockHamster: A simulator of a stock market (Teamwork)
+
+\begin{itemize} \itemsep -2pt
+\item The system runs with 50 AIs and a rumor agency (Java)
+\item With a console client and a swing client to monitor the market
+\item Worked as a team leader, completed the design of system
+\item Course project
+\end{itemize}
+
+Multimedia Computer on FPGA (Teamwork)
+
+\begin{itemize} \itemsep -2pt
+\item Designed a four-step pipelining structure
+\item Implemented a processor in VHDL
+\item Drove several peripherals including audio and video output
+\item Processor frequency can be up to 50MHz on Cyclone II FPGA
+\item Worked as a team leader
+\item Course project
+\end{itemize}
+
+Music Player on FPGA (VHDL)
+
+\begin{itemize} \itemsep -2pt
+\item Purely hardware implementation, no processor
+\item Support FAT file system, WAV audio format
+\item Peripherals: SD-Card, VGA display, keyboard, and WM8731 audio output
+\item No external library used
+\item Course project
+\end{itemize}
+
+\section{PUBLICATIONS}
+ReNIC: Architecture Extension to SR-IOV for Efficient High Availability, {\itshape ACM Symposium on Cloud Computing(SOCC 2011)}, in proceeding.
+
+CompSC: Live Migration with pass-through devices, {\itshape Middleware 2011}, in proceeding.
+
+\section{EDUCATIONS}
+Master's degree in Computer Science and Technology, Tsinghua University
+
+Bachelor's degree in Computer Science and Technology, Tsinghua University
+\begin{quote}
+Overall GPA: 86.14/100, Major GPA: 92.1/100 \\
+Tsinghua University Freshman Scholarship \\
+Tsinghua University Annual Scholarship in 2007, 2008 \\
+\end{quote}
+
+\section{AWARDS}
+2008 "Computer World" Award \\
+2007 Nios II Embedded Processor Design Contest, Outstanding Award \\
+2004 National Olympiad in Informatics, 3rd place
+
+\end{resume}
+\end{document}

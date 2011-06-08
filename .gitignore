@@ -1,1 +1,4 @@
 *.elc
+resume/*.pdf
+resume/*.log
+resume/*.dvi
