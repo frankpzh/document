@@ -1,5 +1,5 @@
-(add-to-list 'load-path "~/.emacs.d/lisp")
-(add-to-list 'load-path "~/.emacs.d/lisp/color-theme")
+(add-to-list 'load-path "~/.emacs.d")
+(add-to-list 'load-path "~/.emacs.d/color-theme")
 (require 'dired-x)
 (require 'maximize-emacs)
 (require 'utility)
