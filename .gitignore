@@ -2,3 +2,4 @@
 resume/*.pdf
 resume/*.log
 resume/*.dvi
+lisp/auto-save-list
