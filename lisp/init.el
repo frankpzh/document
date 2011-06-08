@@ -1,18 +1,20 @@
 (add-to-list 'load-path "~/.emacs.d")
-(require 'dired-x)
-(require 'maximize-emacs)
-(require 'utility)
-(require 'taglist)
+(require 'require-maybe)
+(require-maybe 'dired-x)
+(require-maybe 'maximize-emacs)
+(require-maybe 'utility)
+(require-maybe 'taglist)
 
 ;; Desktop save
-(require 'desktop)
-(desktop-save-mode 1)
+(when (require-maybe 'desktop)
+  (desktop-save-mode 1))
 
 ;; Font/color stuffs
-(require 'color-theme)
-(color-theme-initialize)
-(if (not (null window-system))
-    (color-theme-blackboard))
+(when (require-maybe 'color-theme)
+  (color-theme-initialize)
+  (if (not (null window-system))
+      (color-theme-blackboard)))
+
 (if (eq system-type 'windows-nt)
     (set-face-attribute 'default nil :family "Consolas")
   (set-face-attribute 'default nil :family "Terminus"))
