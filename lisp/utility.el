@@ -39,4 +39,36 @@
   (interactive "sString: \nDBase dir: ")
   (shell-command (concat "grep " str " " dir " -rn --include=\"*.[ch]\"")))
 
+(defun kill-ring-save-sexp nil
+  (interactive)
+  (mark-sexp)
+  (kill-ring-save (point) (mark))
+  (message (concat "Saved into kill ring: " (buffer-substring (point) (mark)))))
+
+
+(defun increase-font-size nil
+  (interactive)
+  (set-face-attribute 'default
+                      nil
+                      :height
+                      (ceiling (* 1.10
+                                  (face-attribute 'default :height)))))
+(defun decrease-font-size nil
+  (interactive)
+  (set-face-attribute 'default
+                      nil
+                      :height
+                      (floor (* 0.9
+                                (face-attribute 'default :height)))))
+
+(defun dos2unix ()
+  "dos2unix on current buffer."
+  (interactive)
+  (set-buffer-file-coding-system 'unix))
+
+(defun unix2dos ()
+  "unix2dos on current buffer."
+  (interactive)
+  (set-buffer-file-coding-system 'dos))
+
 (provide 'utility)

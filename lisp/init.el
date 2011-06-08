@@ -43,6 +43,10 @@
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "C-x C-r") 'revert-buffer)
+(global-set-key (kbd "C-M-w") 'kill-sexp)
+(global-set-key (kbd "M-W") 'kill-ring-save-sexp)
+(global-set-key (kbd "C-=") 'increase-font-size)
+(global-set-key (kbd "C--") 'decrease-font-size)
 (global-set-key (kbd "<f2>") 'undo)
 (global-set-key (kbd "<f3>") 'find-map)
 (global-set-key (kbd "<f3> t") 'taglist)
