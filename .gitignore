@@ -1,4 +1,7 @@
 *.elc
+*.eps
+compsc/compsc.tex
+compsc/compsc.pdf
 resume/*.pdf
 resume/*.log
 resume/*.dvi
