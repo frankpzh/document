@@ -88,7 +88,9 @@
                      (mode . makefile-automake-mode)
                      (mode . asm-mode)
                      (mode . python-mode)))
-         ("Org doc" (mode . org-mode))
+         ("Document" (or
+                      (mode . org-mode)
+                      (mode . latex-mode)))
          ("Patch" (mode . diff-mode))
          ("Elisp" (mode . emacs-lisp-mode))
          ("Dired" (mode . dired-mode))
