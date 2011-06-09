@@ -6,6 +6,7 @@
 (require-maybe 'taglist)
 (require-maybe 'diff-color)
 (require-maybe 'cindent)
+(require-maybe 'org-setting)
 
 ;; Desktop save
 (when (require-maybe 'desktop)
@@ -47,6 +48,8 @@
 (global-set-key (kbd "M-W") 'kill-ring-save-sexp)
 (global-set-key (kbd "C-=") 'increase-font-size)
 (global-set-key (kbd "C--") 'decrease-font-size)
+(global-set-key (kbd "C-c a") 'org-agenda)
+
 (global-set-key (kbd "<f2>") 'undo)
 (global-set-key (kbd "<f3>") 'find-map)
 (global-set-key (kbd "<f3> t") 'taglist)
@@ -59,8 +62,9 @@
 (global-set-key (kbd "<f6> l") 'goto-line)
 (global-set-key (kbd "<f6> j") 'jump-to-register)
 (global-set-key (kbd "<f6> s") 'point-to-register)
-(global-set-key (kbd "<f11>") 'bookmark-bmenu-list)
-(global-set-key (kbd "C-<f11>") 'bookmark-set)
+(global-set-key (kbd "<f11>") 'org-agenda-list)
+(global-set-key (kbd "S-<f11>") 'org-todo-list)
+(global-set-key (kbd "C-<f11>") 'org-remember)
 (define-key emacs-lisp-mode-map (kbd "<f5>") 'eval-buffer)
 
 ;; Dired settings
@@ -84,6 +88,7 @@
                      (mode . makefile-automake-mode)
                      (mode . asm-mode)
                      (mode . python-mode)))
+         ("Org doc" (mode . org-mode))
          ("Patch" (mode . diff-mode))
          ("Elisp" (mode . emacs-lisp-mode))
          ("Dired" (mode . dired-mode))
