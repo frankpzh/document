@@ -14,7 +14,6 @@
    SCHEDULED: <2009-11-15 日 14:50-15:35> CLOSED: [2009-11-15 周日 18:03]
 ** DONE 退英语课
    CLOSED: [2009-11-24 周二 12:18]
-** HOLD [#C] 英语词汇
 ** DONE 组合数学作业
    DEADLINE: <2009-11-18 周三> CLOSED: [2009-11-25 三 01:31]
 ** DONE 整理系统结构大实验
@@ -29,8 +28,9 @@
    SCHEDULED: <2009-12-10 四 17:00> CLOSED: [2009-12-10 周四 20:08]
 ** DONE 老爸来北京
    SCHEDULED: <2009-12-11 五 12:00> CLOSED: [2009-12-12 六 00:23]
-** HOLD [#A] 寂静的春天
-** TODO [#C] 买3台WRT54G
+** HOLD [#A] <<寂静的春天>>
+** DONE [#C] 买3台WRT54G
+   CLOSED: [2011-06-09 四 10:30]
 ** DONE 单片机
    CLOSED: [2010-02-05 周五 15:35]
 ** DONE Reemake周报
@@ -39,16 +39,22 @@
    CLOSED: [2010-02-09 周二 10:31]
 ** DONE 提交meta-OS的报告
    CLOSED: [2010-02-04 周四 00:08]
-** TODO 阅读Intel Paper
-** TODO 楼市网
-** TODO 绘画
-** TODO Intel体检
-   SCHEDULED: <2010-02-23 周二 8:00am-10:00am>
+** DONE 阅读Intel Paper
+   CLOSED: [2011-06-09 四 10:29]
+** DONE 楼市网
+   CLOSED: [2011-06-09 四 10:29]
+** HOLD [#C] 绘画
+** DONE Intel体检
+   SCHEDULED: <2010-02-23 周二 8:00am-10:00am> CLOSED: [2011-06-09 四 10:28]
    - 朝阳区 北土城西路 7号 国恒基业大厦 2层
    - 慈铭体检中心
    - 2.23 8-10 am
    - 身份证 1寸照片
    - 预约号 2号
+** HOLD [#A] <<Mind Hacks>>
+** TODO [#A] VMM group discuss
+   SCHEDULED: <2011-06-17 五 14:00>
+** TODO [#A] 考虑Proj做什么
 * Lab work
   :PROPERTIES:
   :CATEGORY: Lab-work
@@ -777,7 +783,8 @@
 	  $$B(x)=\sum\frac{1}{g_{i}(x)}$$
 
 	  $$B(x)=-\sum ln g_{i}(x)$$
-** TODO 算法复杂性作业
+** DONE 算法复杂性作业
+   CLOSED: [2011-06-09 四 10:29]
 *** 第四周作业
 	- chap6 P78 6.3.2 P82 6.5.7
 	- chap7 P94 7-1 P95 7-3
@@ -851,21 +858,25 @@
 	  CLOSED: [2009-11-16 一 10:16]
 	 - C-c a t 打开TODO list(S-<f11>)
 	 - C-c a a 打开日程表(<f11>)
-*** HOLD [#B] 研究Emacs下的Tags支持
-   	- CEDET
-   	- auto-complete:
-	  根据文件已有符号，弹出补全菜单
+*** DONE [#B] 研究Emacs下的Tags支持
+    CLOSED: [2011-06-09 四 10:39]
+    - CEDET
+    - auto-complete:
+      根据文件已有符号，弹出补全菜单
+    - find-tag:
+      M-. => find a tag
+      M-* => step back
 *** DONE 解决无法复制目录的问题
    	CLOSED: [2009-11-21 六 16:16]
    	远程操作时，不要使用rename，而使用copy+rm
-*** HOLD [#C] 用Emacs写Texinfo文档
-*** HOLD [#C] BufferMenuPlus
-*** HOLD [#C] doremi
+*** DONE [#C] BufferMenuPlus
+    CLOSED: [2011-06-09 四 10:37]
+*** DONE [#C] doremi
+    CLOSED: [2011-06-09 四 10:42]
 *** HOLD [#C] Calculator
 	- C-x * c 打开calc
 	- ' 输入表达式
 	- <TAB> 交换栈顶两个元素
-*** HOLD [#C] Shell on Windows
 *** DONE RememberMode
    	CLOSED: [2009-11-24 周二 17:28]
 *** HOLD [#B] Flymake
@@ -880,7 +891,8 @@
    	CLOSED: [2009-11-12 四 23:58]
    	通常，顶层程序是依赖于底层程序的(耦合)。IoC/DI的主要思想是对底层程序接口化，以实现顶层对底层的解耦。
    	解耦后，顶层程序就可以复用在不同的底层程序上了。
-*** HOLD [#C] Comet
+*** DONE [#C] Comet
+    CLOSED: [2011-06-09 四 10:49]
    	http://en.wikipedia.org/wiki/Comet_(programming)
 *** HOLD [#C] 纳什均衡是NP问题
 *** HOLD [#C] PPAD(Polynomial Parity Arguments on Directed graphs)
@@ -890,8 +902,6 @@
    	CLOSED: [2009-11-16 一 14:10]
    	- 使用cache加速服务器吞吐量
    	- Proxy Server
-*** HOLD [#C] 用Wine和搜狗浏览器配置教育网Proxy
-*** HOLD [#C] Google App Engine
 *** HOLD [#C] GAppProxy
 *** DONE Python Application Server
    	CLOSED: [2009-11-16 一 14:59]
@@ -909,7 +919,6 @@
 *** DONE Wireshark
    	CLOSED: [2009-11-17 周二 15:14]
    	Net Sniffer
-*** HOLD [#C] Mind Hack
 *** DONE 配置Samba创建文件的Owner
    	CLOSED: [2009-11-24 周二 14:46]
    	samba用户与linux用户相对应，但是要额外创建一回，并设上samba的密码
@@ -928,18 +937,20 @@
 *** HOLD [#C] 时序逻辑语言XYZ/E
 *** HOLD [#C] 学习Fontconfig/Xft
 *** HOLD [#C] DBLP
-*** TODO [#B] Michael B. Taylor
+*** HOLD [#B] Michael B. Taylor
    	http://cseweb.ucsd.edu/users/mbtaylor/
    	http://cseweb.ucsd.edu/users/mbtaylor/Tiled_Microprocessors_MBT_Thesis.pdf
 *** HOLD [#C] Nouveau
    	http://nouveau.freedesktop.org/wiki/
 *** HOLD [#C] 量子计算
-*** HOLD [#A] Getting things done 外文新书阅览室 C935 FA42
+*** DONE [#A] Getting things done 外文新书阅览室 C935 FA42
+    CLOSED: [2011-06-09 四 10:31]
 *** DONE [#C] SysRq
    	CLOSED: [2009-12-27 日 15:30]
    	Alt + SysRq + h ==> View SysRq Help
 *** HOLD [#C] UML - User Mode Linux
 *** HOLD [#C] 椭圆曲线
+*** TODO [#B] Haskell
 ** 小板子
 *** 硬件
 **** 240x320彩色LCD
@@ -2850,7 +2861,8 @@
 	  CLOSED: [2010-02-02 周二 14:13]
 ***** DONE 解决首页搜索Form
 	  CLOSED: [2010-02-04 周四 00:09]
-***** TODO 不同城市对应站点
+***** DONE 不同城市对应站点
+      CLOSED: [2011-06-09 四 10:29]
 ***** DONE 抓取新闻
 	  CLOSED: [2010-02-04 周四 00:38]
 	  http://house.focus.cn/newscenter/xwsy.html
