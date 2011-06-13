@@ -7,9 +7,10 @@
 
 (defun maximize-emacs nil
   (interactive)
-  (if (eq system-type 'windows-nt)
-      (w32-send-sys-command #xf030)
-    (maximize-emacs-unix)))
+  (if (not (null window-system))
+      (if (eq system-type 'windows-nt)
+          (w32-send-sys-command #xf030)
+        (maximize-emacs-unix))))
 
 (defun fullscreen nil
   (interactive)
