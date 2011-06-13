@@ -14,8 +14,10 @@
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 ;; Set up org remember for new techs
 (org-remember-insinuate)
-(setq org-directory "~/document/docs")
-(setq org-default-notes-file "~/document/docs/todo.org")
+(if (eq system-type 'windows-nt)
+    (setq org-directory (concat sync-dir "/docs"))
+  (setq org-directory "~/document/docs"))
+(setq org-default-notes-file (concat org-directory "/todo.org"))
 (define-key global-map "\C-cr" 'org-remember)
 (setq org-remember-templates
       '(("Tech" ?t "** HOLD [#C] %?\n" nil "New Technologies")
@@ -23,6 +25,6 @@
         ("Emacs" ?e "** HOLD [#B] %?\n" nil "Emacs")
         ("Vocabulary" ?v "** %?\n" "voc.org" "Vocabulary Collection")))
 ;; Add org agenda files
-(add-to-list 'org-agenda-files "~/document/docs/todo.org")
+(add-to-list 'org-agenda-files (concat org-directory "/todo.org"))
 
 (provide 'org-setting)
