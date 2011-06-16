@@ -22,7 +22,7 @@ $(TITLE).pdf: $(TITLE).tex $(TITLE)-bib.tex $(EPS)
 	rm -f $(TITLE).dvi $(TITLE).log $(TITLE).aux $(TITLE).ent $(TITLE).ps $(TITLE).out
 
 $(TITLE).tex: $(TITLE).org
-	emacs -q --script org2tex.el
+	../scripts/org2tex.el $^
 
 .PHONY: clean
 clean:

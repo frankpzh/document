@@ -1,3 +1,15 @@
+%.pdf: %.ps
+	@ps2pdf $^ $@
+
+%.ps: %.dvi
+	@dvips -G0 -Ppdf -Pcmz -Pamz -o $@ $^
+
+%.dvi: %.tex
+	@cd $(dir $^) && latex $(notdir $^)
+
+%.tex: %.org
+	@scripts/org2tex.el $^
+
 .PHONY: help
 help:
 	@echo Frank Pan\'s power makefile

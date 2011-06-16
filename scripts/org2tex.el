@@ -1,3 +1,5 @@
+#!/usr/bin/emacs --script
+
 (require 'org-export-latex)
 (add-to-list 'org-export-latex-classes
              '("usenix"
@@ -12,5 +14,6 @@
 (add-to-list 'org-export-latex-inline-image-extensions
              "eps")
 
-(find-file "compsc.org")
+(setq org-file (pop argv))
+(find-file org-file)
 (org-export-as-latex 3)
