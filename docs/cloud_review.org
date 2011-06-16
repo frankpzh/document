@@ -1,0 +1,209 @@
+#+TITLE: MANUSCRIPT REVIEW ANSWERS
+#+AUTHOR: Frank Pan
+#+DATE: %Y-%m-%d
+#+OPTIONS: toc:nil
+
+Reviewed by: Frank Pan <frankpzh@gmail.com>
+
+We ask that you focus on the relevance, completeness and accuracy of
+the content, not on correcting grammar errors and typos. What you see
+is a raw manuscript which has not been designed, copyedited or
+typeset. Code annotations as they appear in the manuscript are in an
+intermediate format that will be turned into the usual Manning
+number-in-a-dot format during book production.
+
+* COMMON QUESTIONS
+** First, please tell us a little about yourself. 
+   - Q: What do you do and what is your technical background?
+
+   - A: I'm a graduated student in Tsinghua University. Virtualization
+     is my major, and I have one year experience on hacking Xen.
+
+   - Q: On a scale of 1-10, how would you categorize your expertise in
+     this technology?  (1=none, 10=expert)
+
+   - A: I would say 3 or 4.
+
+   - Q: Did you read the entire manuscript?  If not, which chapters did
+     you read?
+
+   - A: I only got 4 chapters, and I read them all.
+
+** Imagine that you're writing a review for this book on Amazon...
+   - Q: How many stars would you give it?
+
+   - A: It depends on the remaining. Right now I would give 4.
+
+   - Q: What would you say? 
+
+   - A: This book has a deep introduction to the hottest technique
+     right now in the world. The author trys to teach readers using
+     open-source softwares to solve problems in real IT companies. He
+     definitely did it well. Compare to other "In Action" books,
+     readers of this book need extra cost on action, the charge of
+     several services. It's not the author's fault, but it really lets
+     some readers go away.
+
+   - Q: What would the authors need to change to get 5 stars?
+
+   - A: I'm not sure right now.
+
+** We’d like to know what you think of the writing.
+   - Q: Is the writing interesting? Does the content hold your
+   attention?
+
+   - A: Outstanding. It will be perfect if the ch1 have real world
+     examples other than the source code management one. BTW, the ?aaS
+     are not well-explained, you may need more words on them.
+
+   - Q: Is the ToC well organized? What would you change?
+
+   - A: One question: What's the meaning of ch2's name? I cannot figure
+     out any relevance to its content.
+
+   - Q: Is the book too long/short? Is there anything you'd add or cut?
+
+   - A: The first 4 chapter is good. But I think ch2 needs structure
+     change.
+
+   - Q: Does the book make learning the subject easy?
+
+   - A: Absolutely. No one will teach you how to install/configure
+     open source packages, and which tool should you use when you meet
+     performance problems. One thing needs to be awared: Readers can
+     use different linux distributions, and installing packages on
+     them differs. Simply using "./configure & & make & & make
+     install" may cause potential problems on some distribution.
+
+   - Q: Is the technical content good for learning and valuable in practice?
+
+   - A: Sure, especially in ch4.
+
+   - Q: Does the book present anything different compared to what is
+     available on the web and in other books? What?
+
+   - A: This is the first time I see a detailed introduction to cloud
+     computing.
+
+   - Q: Did you have any "aha!" moments while reading this manuscript?
+
+   - A: Yes. On the page-speed test in ch4. That's impressive.
+
+** Source code examples are really important for learning.
+   - Q: Did you run the source code examples?
+
+   - A: Not yet
+
+   - Q: Did you find the examples well chosen to help learn the material?
+
+   - A: I only see part of code.
+
+   - Q: Does the code reflect best practices?
+
+   - A:
+
+   - Q: Are the examples reusable?
+
+   - A:
+
+   - Q: Is it accessible to beginners? Is it valuable for advanced developers?
+
+   - A: It's hard for beginners, even to some advanced developers. For
+     example, I've used python/django for web services before, but I
+     need additional effort to understand ruby on rails code.
+
+   - Q: Are the code examples nicely explained?
+
+   - A: Yes. The code in ch2 is well-explained.
+
+** What can you tell us about the market for this book?
+   - Q: Is this a hot topic?
+
+   - A: Yes.
+
+   - Q: Do you know about any competing books? How does this book
+     compare?
+
+   - A: Haven't seen any.
+
+   - Q: Based on what you've seen so far, how well do you think this
+     book will sell?
+
+   - A: I cannot tell.
+
+   - Q: Is this a book you'd buy? Would you recommend it to others?
+
+   - A: I'll buy it if I have a related job in the future.
+
+** Wrap up.
+   - Q: Please provide your snail mail address & permanent e-mail
+     address.
+
+   - A: frankpzh@gmail.com
+
+   - Q: It is important for us to be aware of hot topics and good
+     experts. Can you think of any?
+
+   - A:
+
+   - Q: Who impresses you in software development and other IT fields,
+     and why?
+
+   - A:
+
+   - Q: Do you have any suggestions for articles based on sections from
+     this book?
+
+   - A:
+
+* CUSTOM QUESTIONS
+  - Q: Looking at the table of contents, can you offer some guidance
+    as to which topic(s) the author should cover in greater depth at
+    the expense of some other topic(s)? For that matter, do you think
+    the topics listed are the most useful and interesting to include
+    in an "In Action" book? If not, what topics would you like to see
+    in the book?
+
+  - A: The topics of ch4/5/6 should be taste and useful. They should
+    be written in depth. I don't know much about tuning web
+    services. In my view, the list of contents are comprehensive.
+
+  - Q: Is the coverage of any topic too broad or shallow to be of use?
+
+  - A: I'm not sure about "Avoiding lock-in". I think engineers don't
+    consider it.
+
+  - Q: The author uses a single example, his Reverso game, throughout
+    the book to demonstrate how the cloud can meet web app
+    requirements related to performance, scalability, big data
+    storage, searching, analysis, and security among others. Do you
+    think the Reverso example for the book is enough to stand in for
+    most web apps or would you like to see other examples (suggestions
+    would be appreciated)?
+
+  - A: I'm eager to see how does it applied to the remaining chapters.
+
+  - Q: Do the chapters you've reviewed have that hands-on feel that you
+    expect to find in an "In Action" book?
+
+  - A: Yes, especially on ch4. That's taste.
+
+  - Q: Please list the strengths and weaknesses of this group of
+    chapters. If you could recommend one change to improve the
+    presentation, what would it be?
+
+  - A: Pros: The author's understanding of cloud computing is
+    awesome. Ch4 is taste. The code in ch2 is well-explained. Cons: I
+    need a credit card to redo everything in the book. I don't know
+    what is ch2 for. I must learn ruby to understand the code. Change
+    recommended: Reconsidering ch2.
+
+  - Q: Note that chapter 3 is incomplete. The chapter covers the open
+    source packages used in the book, how to install and configure
+    them, or how to automate system administration tasks. The author
+    will complete in stages that coincide with future chapters. Are
+    the instructions clear for the packages included so far? Do you
+    have any comments or suggestions regarding the choice of packages?
+
+  - A: I think a command prompt should be used in all instructions.
+  
