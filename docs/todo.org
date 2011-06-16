@@ -55,6 +55,13 @@
 ** TODO [#A] VMM group discuss
    SCHEDULED: <2011-06-17 Îå 14:00>
 ** TODO [#A] ¿¼ÂÇProj×öÊ²Ã´
+*** Haskell
+**** Mathematical
+     Functional programming language can have mathematical properties.
+     Can prove something...
+**** Monad
+     Monad goes through the program sequences, and collects specified
+     information
 * Lab work
   :PROPERTIES:
   :CATEGORY: Lab-work
