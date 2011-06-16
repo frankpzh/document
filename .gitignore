@@ -1,10 +1,14 @@
 *.elc
 *.eps
+*.log
+*.dvi
+*.aux
 compsc/compsc.tex
 compsc/compsc.pdf
+docs/*.tex
+docs/*.pdf
+docs/*.out
+docs/*.toc
 resume/*.pdf
-resume/*.log
-resume/*.dvi
-resume/*.aux
 resume/*.out
 lisp/auto-save-list
