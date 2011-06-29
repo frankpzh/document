@@ -103,6 +103,14 @@
           (lambda ()
             (ibuffer-switch-to-saved-filter-groups "default")))
 
+;; Gtalk
+(when (require-maybe 'jabber)
+  (setq jabber-account-list
+        '(("frankpzh@gmail.com"
+           (:network-server . "talk.google.com")
+           (:connection-type . ssl))))
+  (setq jabber-roster-line-format " %c %-25n %u %-8s  %S"))
+
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
