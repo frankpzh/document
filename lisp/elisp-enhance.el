@@ -2,6 +2,7 @@
 
 (defadvice save-buffer (after compile-elisp-after-save)
   (when (equal major-mode 'emacs-lisp-mode)
+    (require 'bytecomp)
     (if (file-exists-p (byte-compile-dest-file (buffer-file-name)))
         (byte-compile-file (buffer-file-name)))))
 
