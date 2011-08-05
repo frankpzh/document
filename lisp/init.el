@@ -108,6 +108,9 @@
            (:connection-type . ssl))))
   (setq jabber-roster-line-format " %c %-25n %u %-8s  %S"))
 
+;; Disable Version Control
+(setq vc-handled-backends nil)
+
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
