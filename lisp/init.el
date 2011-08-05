@@ -36,9 +36,6 @@
 (setq scroll-margin 3)
 (setq scroll-conservatively 10000)
 
-;; Show function name
-(which-func-mode t)
-
 ;; Key binding stuffs
 (define-prefix-command 'find-map)
 (define-prefix-command 'tag-map)
