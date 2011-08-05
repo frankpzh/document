@@ -7,6 +7,7 @@
 (require-maybe 'diff-color)
 (require-maybe 'cindent)
 (require-maybe 'org-setting)
+(require-maybe 'project)
 (require-maybe 'elisp-enhance)
 
 ;; Desktop save

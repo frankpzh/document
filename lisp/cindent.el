@@ -2,16 +2,16 @@
 (defun tab-kernel nil
   (interactive)
   (setq tab-width 8)
-  (setq-default c-basic-offset 8)
+  (setq c-basic-offset 8)
   (setq indent-tabs-mode t))
 
 (defun tab-4 nil
   (interactive)
   (setq tab-width 4)
-  (setq-default c-basic-offset 4)
+  (setq c-basic-offset 4)
   (setq indent-tabs-mode nil))
 
-(setq-default tab-width 8)
+(setq-default tab-width 4)
 (setq-default indent-tabs-mode nil)
 
 ;; Create my personal style.
