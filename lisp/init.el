@@ -108,6 +108,9 @@
            (:connection-type . ssl))))
   (setq jabber-roster-line-format " %c %-25n %u %-8s  %S"))
 
+;; Set frame title
+(setq frame-title-format '("" jabber-activity-mode-string " Emacs - %b"))
+
 ;; Disable Version Control
 (setq vc-handled-backends nil)
 
