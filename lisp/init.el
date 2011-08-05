@@ -7,6 +7,7 @@
 (require-maybe 'diff-color)
 (require-maybe 'cindent)
 (require-maybe 'org-setting)
+(require-maybe 'elisp-enhance)
 
 ;; Desktop save
 (when (require-maybe 'desktop)
@@ -66,7 +67,6 @@
 (global-set-key (kbd "<f11>") 'org-agenda-list)
 (global-set-key (kbd "S-<f11>") 'org-todo-list)
 (global-set-key (kbd "C-<f11>") 'org-remember)
-(define-key emacs-lisp-mode-map (kbd "<f5>") 'eval-buffer)
 
 ;; Dired settings
 (add-hook 'dired-load-hook
