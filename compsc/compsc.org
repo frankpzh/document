@@ -75,16 +75,16 @@ cloning
   efforts\cite{opt_net,bridge_gap} largely improve the performance of
   PV network I/O, it still has a performance gap with native network
   I/O\cite{diag_perf,opt_net,bridge_gap} together with high CPU
-  overhead. Using pass-through I/O\cite{bypass_io,vtd}, aka direct I/O, virtualized system
-  can directly access physical device without interceptions of the
-  hypervisor, thus it can provide a near native performance. Single
-  Root I/O Virtualization (SR-IOV)\cite{sriov} is a recent
-  specification raised by PCI-SIG. This specification shows how PCIe
-  device can share a single root I/O device to several virtual
-  machines. With its help, one hardware device can provide number of
-  PCIe interfaces to the hypervisor. By assigning these interfaces to
-  virtual machines as pass-through devices, the scalability of
-  pass-through I/O can be largely increased.
+  overhead. Using pass-through I/O\cite{bypass_io,vtd}, aka direct
+  I/O, virtualized system can directly access physical device without
+  interceptions of the hypervisor, thus it can provide a near native
+  performance. Single Root I/O Virtualization (SR-IOV)\cite{sriov} is
+  a recent specification raised by PCI-SIG. This specification shows
+  how PCIe device can share a single root I/O device to several
+  virtual machines. With its help, one hardware device can provide
+  number of PCIe interfaces to the hypervisor. By assigning these
+  interfaces to virtual machines as pass-through devices, the
+  scalability of pass-through I/O can be largely increased.
 
   Nevertheless, pass-through I/O has limitations on virtual machine
   live migration. If using pass-through I/O, the physical device is
@@ -899,5 +899,79 @@ cloning
   device during the live migration. Besides, our method needed little
   implementation effort and could be easily deployed on different
   devices.
+
+* Comments from Middleware
+  I would have liked some more results related to the robustness of
+  implementation, e.g. how many times did you manage to migrate back
+  and forth or in a circle around multiple random machines. Also,
+  individual migration is easy, it becomes a problem in presence of
+  multiple migrations taking place in the system concurrently.
+
+  I would have liked more details on the use of migration. What
+  scenarios did you use migration in, how effective it was, etc.
+
+  you write ".. with a like count on code changes in our
+  implementation, our solution is easy to deploy and can be widely
+  used" This is somewhat subjective statement. First, there is a
+  requirement to make code changes of the VM and hypervisor, is this
+  true? This somewhat limits deployment and use.
+
+  Please reference appropriately with number of the issue, paegs,
+  year/month. (e.g. in reference 1 and elsewhere for
+  magazines/journals) Please use year and pages for conference
+  proceedings.
+
+  missing discussing of the choice of benchmarks (netperf, scp), what
+  kind of load the represent
+
+  on page 1, "Several efforts have been made on enabling pass-through
+  network I/O migration[15, 16, 17], but none of them solves the
+  problem perfectly": the discussion on shortcomings is fragmented on
+  the paper and in some cases not in sufficient depth
+
+  refers to bonding driver in initial part of the paper without
+  defining it, so discussion may be lost in he reader
+
+  could provide better arguments on the sync part: added a lock to all
+  dev operations. It's true the lock won't be contended in the common
+  case, but it would make sense to discuss this when first introduced
+
+  on page 5, replay is discussed, but without any specific information
+  on when/which operations were tracked for replay? The ones related
+  to read/only and read-clear?
+
+  on page 5, "It would be different when using SR-IOV network device":
+  why?
+
+  It would be good if the paper discussed the applicability of this
+  approach for other hypervisors
+
+  The evaluation section provides table 3 with info on
+  duplicated/missing packages for the scp/specweb workloads.  But what
+  kind of workload could have bigger numbers?
+
+  How come the migration setup was not working out of the box, and you
+  had to find root cause and fix with the ARP?
+
+  The paper discusses live migration support for pass-through network
+  devices. How about applicability for other pass-through devices? The
+  last sentence on the paper says that the method requires little
+  effort and could be easily deployed on different devices (I guess
+  you're assuming other network devices) but no arguments were
+  provided to back this statement up
+
+  For instance, one of the main mechanisms to support live-migration
+  leverages the replay of past communication to bring the new driver
+  to the up-to-date state. A natural question to me seems how scalable
+  is this solution. How much state need to be saved to enable state
+  replay? The authors mention that some optimizations are possible but
+  it would have been nice to see some real numbers and experimental
+  analysis.
+
+  both CompSC and the para-virtualized driver achieve the same
+  throughput. I can imagine that under more challenging scenarios
+  (e.g., a 10-Gbps network interface), the direct I/O driver would
+  outperform the para-virtualized one. It would be interesting to see
+  in these conditions what are the performance of CompSC.
 
 #+LATEX: \input{compsc-bib.tex}
