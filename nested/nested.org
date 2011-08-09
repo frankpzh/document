@@ -1,0 +1,779 @@
+#+TITLE: Pratical High Performance Nested Virtualization
+
+#+LaTeX_CLASS: ieee
+
+#+STARTUP: showall
+#+OPTIONS: author:nil
+#+OPTIONS: toc:nil
+
+#+LATEX_HEADER: \author{
+#+LATEX_HEADER: \IEEEauthorblockN{Zhenhao Pan}
+#+LATEX_HEADER: \IEEEauthorblockA{Tsinghua University\\
+#+LATEX_HEADER: Email: frankpzh@gmail.com}
+#+LATEX_HEADER: \and
+#+LATEX_HEADER: \IEEEauthorblockN{Wei Jiang}
+#+LATEX_HEADER: \IEEEauthorblockA{Tsinghua University\\
+#+LATEX_HEADER: Email: jwhust@gmail.com}
+#+LATEX_HEADER: \and
+#+LATEX_HEADER: \IEEEauthorblockN{Yu Chen}
+#+LATEX_HEADER: \IEEEauthorblockA{Tsinghua University\\
+#+LATEX_HEADER: Email: yuchen@tsinghua.edu.cn}
+#+LATEX_HEADER: \and
+#+LATEX_HEADER: \IEEEauthorblockN{Yaozu Dong}
+#+LATEX_HEADER: \IEEEauthorblockA{Intel Corp.\\
+#+LATEX_HEADER: Email: eddie.dong@intel.com}
+#+LATEX_HEADER: }
+
+#+begin_abstract
+This paper describes a nested virtualization solution, which allows
+virtual machine monitor (VMM) with virtual machine (VM) to run within
+another VM with low overhead. Previous general purpose nested
+virtualization solutions on X86 platform are mainly based on
+emulation, which result in poor performance and poor usability.  We
+propose a practical high performance nested virtualization
+architecture, which fully employs the hardware virtualization
+extensions.  Base on our basic implementation of nested virtualization
+on KVM, three optimizations are also implemented to reduce the nested
+guest overhead.  (1) Guest Page- fault Bypassing, which permits nested
+guest to handle the page fault without VM Exit transition overhead;
+(2) Host Extended Page Table (EPT) and virtual EPT optimization, which
+eliminate unnecessary page-fault introduced by shadow page table in
+level-0 and level-1 VMM; (3) PV VMCS provides more effective VMCS
+read/write processing without generating VM-Exit events.  Experimental
+results of benchmarks such as SPEC CPU2006 and SysBench show that
+performance of our nested guest virtual machine is close to single
+level virtual machine in both computing- intensive and data-intensive
+benchmarks.  Most benchmarks can achieve about 85\% performance of the
+single level guests, which makes the nested approach comparable with a
+conventional guest.
+#+end_abstract
+
+#+begin_IEEEkeywords
+Virtual Machine, Nested Virtualization, Performance
+#+end_IEEEkeywords
+
+* Introduction
+  Virtualization has existed for more than forty years and revives
+  recently. It has many benefits, which have expatiated in a lot of
+  previous studies \cite{survey-vm}. There are commercial VMM (Virtual
+  Machine Monitor) versions such as VMware \cite{vmware} and Microsoft
+  Hyper-V \cite{hyper-v}, and open source versions such as Xen
+  \cite{xen,xen-art,xen3-art,mem-manage}, KVM
+  \cite{kvm,kvm-paper,linux-src}, VirtualBox \cite{vbox} and lguest
+  \cite{lguest}. Para- virtualization and full virtualization are two
+  common virtualization techniques. Para-virtualization modifies the
+  operating systems to provide virtualization in legacy processor.
+  Full-virtualization, on the other side, virtualizes the operating
+  systems without any modification \cite{intel-vt}.
+
+  Nested virtualization, which is also known as recursive
+  virtualization in previous studies, allows virtual machine monitor
+  with virtual machines to run within another virtual machine. Most
+  previous studies of nested virtualization was designed using
+  microkernels or on special virtualizable hardware architecture
+  \cite{micro-vm}, which has been designed more than ten years ago and
+  is not suitable for nowadays environment.
+
+  When this paper is writing, VMware Workstation 7.0 and VirtualBox
+  can’t run nested virtualization. KVM can run nested virtualization
+  using QEMU \cite{qemu} emulation with very low performance, which is not
+  practical in reality.
+
+  Now hardware vendors like Intel and AMD have added extensions to x86
+  architecture which make virtualization much easier and faster
+  \cite{intel-vt,sw-manual}. Previous software and hardware
+  virtualization research shows that virtualization can achieve very
+  high performance
+  \cite{measure-cpu-io-xen,opt-net,opt-xen-vt,vmm-bypass-io,diag-perf-xen,bridge-gap-sw-hw,compare-vt}. Base
+  on the hardware features and optimization research work, this paper
+  proposes the new nested virtualization architecture in normal Linux
+  kernel. Our work uses the VMX instruction as interfaces, which is
+  general and easy enough to apply to most VMMs on X86 platform.
+  Benchmarks results indicate our new nested virtualization
+  architecture has practical high performance.
+
+  Nested virtualization has not been used widely, but we can show its
+  usage model by some examples. We believe some of them have great
+  potential in the near future. First, some latest operating systems
+  features and applications are necessary to run in the
+  virtualization-supported environment. For example, the Windows 7 has
+  the XP mode, which runs traditional Windows XP OS in virtualization
+  environment. It is impossible to run XP mode when the Windows 7 is
+  already running in a virtual machine. Second, recently, embedded
+  virtualization technology (A.K.A hypervisor in firmware) has been
+  adopted in some servers, which means the booted operating system is
+  already a guest virtual machine. Nested virtualization can enable
+  the traditional hypervisor working normally. Third, it is easy and
+  efficient to debug or monitor the operating systems in a
+  hypervisor. How can we do these to a hypervisor? The nested
+  environment is the answer. Forth, for future cloud environment, the
+  virtualization solutions may vary, like diverse operating systems
+  currently. Different guest OS images may be not able to run on or
+  live migrate between different hypervisors \cite{lm}.  The nested
+  virtualization is a solution to this problem. In Figure 1, two
+  traditional VMM can live-migrate their OS to the nested VMM. Someone
+  may say Xenner \cite{xenner} is also a potential solution. It
+  enables a Xen PV guest run in KVM. But Xenner can only convert a
+  guest to specific hypervisor with lots of additional codes added
+  between KVM and Xen PV guest. It needs completely rework if the
+  underlying hypervisor becomes hyper-V or VMware ESX, or even the up
+  level guest becomes Linux with KVM para-virtualized feature such as
+  Virtio \cite{virtio}.  Not only system vulnerability increases, but
+  also overall performance deteriorates. Moreover, the approach is too
+  specific to be adopted in other systems. By using nested
+  virtualization, we can run several hypervisors in the same physical
+  machine with promising high performance.
+
+  The remainder of this paper is organized as follows: Section 2
+  introduces the hardware acceleration extension for virtualization
+  (VMX) and the KVM VMM. Section 3 gives a detailed description to our
+  basic nested virtualization design.  Section 4 discusses three
+  optimizations to the nested virtualization. Section 5 uses some
+  well-known benchmarks such as SPEC CPU2006, Kernel Build Test and
+  SysBench to evaluate the nested virtualization's performance. At
+  last, Section 6 is the related work and Section 7 is the conclusion
+  and future work.
+
+* Background
+  In this section, we introduce the background of Intel’s hardware
+  acceleration extension for virtualization and KVM (Kernel-based
+  Virtual Machine).
+
+** Hardware Extension for virtualization
+  X86 architecture is not virtualizable according to Goldberg’s paper
+  in 1974 \cite{survey-vm}. So virtualization on X86 needs some kinds
+  of patches, either software patches such as Xen or hardware patch
+  such as Intel VT. KVM is the latter one who uses the hardware
+  acceleration extension to implement VMM.
+
+  Figure 2 is the instruction of VMX and how VMM and Guests interact
+  with each other. There are two kinds of VMX operation modes, root
+  operation for VMM and non-root operation for guest. Root operation
+  is fully privileged and entered by VMM. Non-root operation is not
+  fully privileged and used by Guest OS. Software can enter VMX
+  non-root operation using VM Entry instruction (VMLAUNCH or
+  VMRESUME). VM Exits occur in response to certain instructions and
+  events in VMX non-root operation.
+
+  VMCS is in a processor defined format and is used by hardware. Each
+  logical processor associates a region in memory with each VMCS,
+  which is called a VMCS region. The VMCS region are organized into
+  six groups: Guest-State area, Host- State area, VM- execution
+  control fields, VM Exit control fields, VM-Entry control fields, VM
+  Exit information fields. Each of them contains one aspect of VMX
+  information. For example, Guest-state area and Host-state area
+  contain fields corresponding to different components of processor
+  state.  When VM Exits happen, processor states of guest are saved to
+  the guest-state area and processor states are loaded from the
+  host-state area to restore host context. As shown in Figure 2, VMX
+  uses several VMX and VMCS management instructions to control VMCS,
+  such as accessing VMCS information or changing VMCS binding
+  relation.
+
+  EPT \cite{sw-manual} is an important hardware feature for optimizing
+  memory virtualization performance. When EPT is active, separate EPT
+  tables are provided to translate guest-physical addresses to the
+  host-physical addresses. Meanwhile the traditional page tables
+  finish the translation from guest-liner address to guest-physical
+  address. This feature avoids the expensive VM exits and complex
+  software handling mechanism during handling guest page faults, and
+  therefore brings programming flexibility and performance
+  enhancement.  Besides performance, EPT has other benefits too. It
+  makes the complex page table virtualization algorithm no longer
+  needed such as shadow page table. It has much less memory footprint
+  then shadow page table because each guest user process needs a
+  shadow page table in VMM to support the entire virtual machine.
+
+** KVM
+  KVM (Kernel-based Virtual Machine) is virtualization solution
+  integrated into Linux Kernel, which consists of a loadable kernel
+  module that provides the core virtualization infrastructure and a
+  processor specific module. As a kernel module in Linux, it can
+  leverage existing Linux features and provide an integrated
+  hypervisor approach. Virtual CPUs (vCPUs) of KVM Guest are normal
+  threads in the host operating system. KVM Guest memory is mapped
+  into the task's virtual memory space. It is relatively new but
+  mature virtualization solution for Linux on X86
+  architecture. Studies show the KVM has comparable performance to Xen
+  \cite{quant-comp}.
+
+* Nested Virtualization Basic Design
+  Using QEMU \cite{qemu}, KVM can run nested virtualization but with
+  very low performance. Qemu’s dynamic binary translation is the main
+  reason to be blamed. With hardware virtualization features, guest’s
+  code can be executed directly on the physical CPU. But in the nested
+  environment, there is only one VMM can run on the real hardware,
+  which can utilize the hardware acceleration features. The nested VMM
+  only has the “real” hardware presented by the underlying VMM, which
+  has no hardware acceleration.
+
+  Our nested virtualization architecture can provide the nested VMM
+  the ability to use the hardware acceleration features. In this
+  section we describe our basic three-level architecture and
+  implementation in details.
+
+** Three-Level Architecture
+  There are two parts in Figure 3. Part A is the traditional
+  architecture, which includes a normal guest virtual machine. And one
+  VMCS is associated with the vCPU (virtual CPU) in guest operating
+  system OS1.
+
+  Part B is our nested virtualization architecture. There are three
+  levels in this architecture: the L0 VMM, the L1 VMM and the L2
+  Guest. The first level is called L0 VMM, which is the modified
+  traditional virtual-machine monitor (A.K.A VMM or hypervisor)
+  running on the real hardware. The traditional guest here is in Level
+  1 and is called the L1 Guest or L1 VMM depending on its roles. It is
+  a nested VMM and has no idea about the L0 VMM. Its “hardware” is
+  presented by L0 VMM.  The L1 VMM can create its own guest by doing
+  the same things as in L0 VMM does. The 3rd level is our nested
+  Guest, or called L2 Guest in our paper. There is no need to modify
+  L1 VMM or L2 Guest operating system except when doing some
+  optimizations such as the PV VMCS optimization. Only L0 VMM runs in
+  VMX root operation. L1 VMM and L2 Guest run in VMX non-root
+  operation.
+
+  In order to make L1 VMM be able to use the hardware acceleration
+  features, we provide the VMX interface to L1 VMM. So the L2 Guest’s
+  codes can be executed on the physical CPU and has performance
+  boost. As there are three levels in this architecture, we will also
+  explain the new execution flow in the nested environment.
+
+*** Nested VMX Interface
+    As described in the background, VMCS is significant in VMX, which
+    controls the transition of two operation modes. In normal
+    virtualization, one VMCS is associated with one logical
+    processor. Now the L1 VMM not only has its own logical vCPU (the
+    intrinsic vCPU), but also has L2 Guest’s logical vCPU inside
+    (shadow vCPU). When the L2 Guest is running, the L2 Guest’s
+    logical processor is supposed to bind with the real hardware. So
+    the VMCS needs to be extended.
+
+    In our architecture, there are three kinds of VMCS: the intrinsic
+    VMCS (iVMCS), the shadow VMCS (sVMCS) and the physical VMCS
+    (pVMCS). The first two VMCSes are respective the L1 VMM’s VMCS and
+    the L2 Guest’s VMCS.  The last one is the VMCS region used by the
+    real hardware.  Figure 5. Nested Virtualization CPU Execution Flow
+    They have the relation as the following:
+
+    VMX instruction issued by L1 VMM will cause VM Exit and traped
+    into L0 VMM. Instruction parameters can be got from the VM Exit
+    reasons. Then the right command is issued by L0 VMM on behalf of
+    L1 VMM. So the L1 VMM can use the real hardware acceleration
+    mechanism to improve the performance.
+
+*** Nested CPU Execution Flow
+    In the normal virtual machine, the execution flow is shown in
+    Figure 4. At time A, the VMM issues the VM Entry instruction to
+    let Guest run, and the system goes into the non- root
+    operation. At T2, Guest’s instructions are executed on the
+    physical CPU directly. At time B, VM Exit happens. Then the CPU
+    execution goes back to VMM to handle the VM Exit events.
+
+    Figure 5 is the CPU execution flow in the nested environment,
+    which involves three levels’ interaction. At time A, L0 VMM issues
+    a VM Entry to let L1 VMM run. Then L1 VMM issues the virtual
+    VMEntry at Point B, which causes a VM Exit and the switch of VMCS
+    from VMCS2(iVMCS) to VMCS21(sVMCS). Finally at time C, L0 VMM
+    issues the real VMEntry which let the L2 Guest run. So far, the L2
+    Guest can get a running opportunity at T4. The L2 Guest’s
+    instruction keeps running on the physical CPU until a virtual VM
+    Exit happens at Time D.
+
+    If VM Exit from L2 Guest happens, it should be handled. In
+    non-nested situation, guest context is saved into VMCS and host
+    state is restored from VMCS automatically. Then the VMM will
+    invoke corresponding handler according to VM Exit reasons. In
+    Figure 4, Point B is the time to handle the VM Exit.
+
+    In nested environment, the L0 VMM decides where to handle this VM
+    Exit. If this VM Exit is due to L0 VMM, L0 VMM handlers will
+    handle it. Shadow Page-Fault, external IRQ belong to this
+    situation. Then the execution will go back to L2 Guest directly
+    without switching VMCS.
+
+    If L1 VMM is responsible for the nested VM Exit handling, L1 VMM
+    should be resumed to handle it. In this situation, pVMCS is in
+    sVMCS and should be switch back to iVMCS.  First, we should save
+    the sVMCS. The guest state and read- only parts of sVMCS is saved
+    back to vVMCS. If the switch is due to virtual IRQ, a new
+    EXIT\_REASON is generated. After saving sVMCS, the pVMCS is unbound
+    with physical CPU using VMCLEAR. Then iVMCS is generated and bound
+    to vCPU using VMPRTLD. Virtual VM Exit is generated by copying
+    host state of vVMCS to guest state of pVMCS, so the L1 VMM will
+    have enough information about what happens.  At last, VMRESUME
+    issued by L0 VMM will resume the L1 VMM and give L1 VMM the chance
+    to run and handle this virtual VM Exit.
+
+    If the VM Exit is due to L2 Guest, L0 will inject a virtual VM
+    Exit to L1 VMM and resume L1 VMM. Then L1 VMM will read the VM
+    Exit reason, and then inject another event to L2 Guest to let L2
+    Guest handling itself. Events such as L2 Page fault is handled
+    like this.
+
+** Implementation
+   In the following section, we expatiate on the nested VMCS and
+   nested VMX instruction we implemented.
+
+*** Nested VMCS Implementation
+    The iVMCS and sVMCS are states of pVMCS rather than real
+    variable. In nested VMCS implementation, the iVMCS copy of L1 VMM
+    is in the L0 VMM’s memory as normal guest virtual machine. The
+    sVMCS’s copy is based on VMCS of L2 Guest in the L1 VMM’s memory,
+    which is called vVMCS. In order to simplify the procedure of
+    accessing vVMCS, a copy of vVMCS is kept in L0 VMM’s memory and
+    synchronized with the vVMCS in L1 VMM. They have the relation in
+    Figure 6.
+
+*** VMX Instruction Implementation
+    When the L1 VMM issues a VMX instruction, it generates a VM Exit
+    and is trapped to L0 VMM. A handler in L0 VMM will handle the VMX
+    instructions on behalf of the L1 VMM.  These handlers take
+    advantages of the real hardware acceleration which makes the
+    performance of L2 Guest close to L1 Guest.
+
+    There are several VMX instructions including five VMCS maintenance
+    instructions and five VMX management instructions \cite{sw-manual}, all of
+    which has a corresponding handler in L0 VMM. Here we give out
+    implementation analysis to some important instructions handlers.
+
+**** Virtual VMPTRLD/VMPTRST Handling
+     VMPTRLD loads the current VMCS area region pointer from memory
+     \cite{sw-manual} before VM Entry. If L1 VMM issues this
+     instruction, it means the nested VMM wants to bind another VMCS
+     memory region. By decoding the VM Exit reason, the address of the
+     new VMCS region is fetched. Then we simply copy that VMCS region
+     content to the L0 VMM's cached copy of vVMCS to synchronize with
+     vVMCS in guest memory. For later reference, the address of the
+     new VMCS region is saved in L0 VMM. VMPTRST stores the current
+     VMCS pointer into memory. The handler is similar to VMPTRLD. The
+     address of the last saved VMCS region is written back to vVMCS in
+     guest memory to synchronize with cached copy in L0 VMM.
+
+     These two instructions are preparation of VM ENTRY, so they don’t
+     affect the pVMCS and hardware state, they only interact with the
+     cached copy of the guest VMCS (vVMCS) for synchronization.
+
+**** Virtual VMCLEAR Handling
+     VMCLEAR ensures all the data of VMCS are copied to VMCS memory
+     region \cite{sw-manual}. So the handler of this instruction just
+     synchronizes the L0 VMM's cached copy with the vVMCS in guest
+     memory.
+
+**** Virtual VMREAD/VMWRITE Handling
+     VMREAD reads a specified VMCS field and stores the result into a
+     specified destination \cite{sw-manual}. The handler solution is:
+     (1) Decode VMREAD information. From the VM EXIT instruction exit
+     information, the field wanted by VMREAD can be got. (2) Read the
+     field value from the L0 VMM's vVMCS cached copy. (3) Save the
+     value to specified register in the exit information. VMWRITE acts
+     almost the same as VMREAD.  The difference is to write specified
+     register value into vVMCS's cached copy.
+
+     VMREAD and VMWRITE are issued by L1 VMM very frequently. As an
+     optimization, there is a fast entry mechanism which provides an
+     ultra short exit path for VMREAD and VMWRITE handlers. This path
+     is set at the beginning of the VM Exit handling path. In Section
+     4, we have another PV optimization to VMREAD and VMWRITE.
+
+**** Virtual VMLAUNCH/VMRESUME Handling
+     These two instructions launch or resume a virtual machine managed
+     by the current VMCS and then transfer control to guest
+     \cite{sw-manual}. These two instructions don’t need to be
+     distinguished when emulating in nested virtualization
+     environment. In Figure 4, “VMENTRY” and “Virtual VMEntry” are the
+     usage examples of these two instructions.  VMPTRST, VMPTRLD and
+     VMCLEAR are preparation of these two instructions.
+
+     The two VMMs here have different views of VMRESUME.  The L1 VMM
+     has no knowledge of its nested status, so it does like the
+     non-nested VMM (as Point A in Figure 4): (1) Save host state to
+     its vVMCS (2) Restore Guest state from vVMCS.  (3) Enter guest
+     mode.
+
+     But in fact, more work needs to be done in L0 VMM.  Before
+     VMRESUME or VMLAUNCH, the computer is running in L1 VMM, and the
+     VMCS is iVMCS as mentioned above. So we should switch the pVMCS
+     from iVMCS to sVMCS. In L0 VMM the steps are: (1) VMCLEAR pVMCS,
+     which saves the current status to a data structure and unbinds
+     the pVMCS with the corresponding vCPU. (2) VMPTRLD pVMCS
+     again. (3) As the iVMCS is saved, we can modify the pVMCS to
+     construct sVMCS. Some values are copied from vVMCS, and the
+     others should be constructed according to iVMCS and vVMCS. (4)
+     Now the pVMCS's status is sVMCS.  Then VMRESUME issued by L0 VMM
+     will resume the L2 Guest.
+
+** Another Nested Virtualization Design
+   There is another implementation of nested virtualization we
+   initially considered, called two-level nested virtualization. It is
+   not a real nested virtualization architecture in the real sense. In
+   this design, nested guest is created by L0 VMM under the request of
+   L1 Guest. The nested guest works in the same level with L1
+   Guest. Controls from L1 Guest will be trapped by L0 VMM first. Then
+   L0 VMM will check and control the nested guests on behalf of the L1
+   VMM.
+
+   This solution is easy to implement and the L11 (the false nested
+   guest for L1) can avoid the nested virtualization
+   overheads. However, it also has several disadvantages: (1) The L1
+   Operating System here must be modified using PV (para-
+   virtualization) because every control from L1 to L11 must be
+   trapped into L0 and then transfer control to L1. (2) We lose the
+   isolation here and the L0 VMM is vulnerable, since some resource
+   control transfers to L1 Guest. (3) It is unable to provide
+   migration among different VMM solutions. (4) This solution does not
+   yield scalability and is hard to form standardization.
+
+   Compared to the above solution, three-level nested solution has
+   benefits of: (1) It supports both HVM and PV Guest; (2) The Level-1
+   VMM can control every aspect as L0 VMM; (3) The nested Guest is
+   isolated well in L1 VMM. (4) Our solution utilities a much lower
+   level interfaces: the VMX instruction interface. This is achieved
+   by presenting VMX instruction interface to L1 VMM. So our first
+   nested solution is better.
+
+* Optimizations
+  Section 3 introduces the basic implementation of nested
+  virtualization, which provides the basic functionality to run nested
+  guest. But the performance is not very good. So we have to conduct
+  some nested virtualization optimizations, including bypass guest
+  page fault optimization, EPT optimization and PV VMCS
+  optimization. Bypass guest page fault and EPT reduce the time of
+  handling L2 Guest page fault in different ways. PV VMCS is another
+  optimization, which fully utilizes the VMCS layout information in L1
+  VMM and makes the VMREAD and VMWRITE more efficient.
+
+  The main idea here is to reduce the transitions between L0, L1 and
+  L2. Transitions between the three layers are one of the main sources
+  of overhead. EPT and PV VMCS can make obvious improvement. We use
+  KVMTRACE \cite{linux-src} here to have a statistic about the KVM
+  events, such as page fault amount.  We use some experiments results
+  to compare the optimizations, and all the test environment is the
+  same with Section 5.1.
+
+** Nested Bypass Guest Page-Fault
+   This optimization makes the page fault of L2 Guest handled by the
+   L2 Guest itself directly without causing a VM Exit. So transition
+   time can be saved.
+
+   First we describe how the VMM handle the guest page fault.  Page
+   faults can occur for a variety of reasons. In some cases, the page
+   fault alerts the VMM to an inconsistency between the can update the
+   former and re-execute the faulting instruction.  This is also
+   called shadow page fault which won’t happen in non-virtualization
+   environment. In other cases, the hierarchies are already consistent
+   and the fault should be handled by the guest operating system by
+   injecting page fault into guest by VMM. In the latter cases, a VM
+   Exit is not needed. Thanks to a VMX hardware features, page-faults
+   can be specially treated.  Whether a page fault causes a VM Exit is
+   determined by (1) bit 14 in the exception bitmap (2) the error code
+   produced by the page fault and two 32-bit fields in the VMCS (PFEC
+   & PFEC\_MASK = PFEC\_MATCH, PFEC is the Page-fault Error Code). If
+   bypass guest page fault is set, the page fault exception is
+   delivered through the guest IDT without causing a VM Exit
+   \cite{sw-manual}. Only shadow page fault causes VM Exits while
+   guest page fault don’t.
+
+   If guest page fault bypassing is on in KVM: (1) PFEC\_MASK and
+   PFEC\_MATCH are set to 1, which means non present pages doesn’t
+   cause VM Exits, while only present pages with wrong access bits or
+   reserved bit cause VM Exits (2) if the guest page table entry is
+   not present, shadow page table entry is set to 0x0, which won’t
+   cause page fault (3) if the guest PTE (page table entry) is
+   present, shadow page fault entry is set to ~0xffe. So the non
+   present page fault is bypassed, and access right page fault is not.
+
+   There are three kinds of page fault coming from L2 Guest: (1) L0
+   shadow fault, which is solved by L0 directly; (2) L1 shadow page
+   fault, which is injected into L1 VMM and handled by L1 VMM; (3) L2
+   page fault, which is injected into L1 VMM and then L1 VMM would
+   inject the page fault to L2 Guest.  This optimization will reduce
+   the L2 Page-fault.
+
+   We use KVMTrace here to count the total page fault of VM Exit from
+   L2 Guest. KVMTrace is module in Linux kernel which can recode the
+   KVM event timestamp and event parameters. KVMTrace is easy to use
+   by adding KVMTRACE\_0D macro in the kernel source code.
+
+   Figure 7 shows the 60 seconds zKVMTrace sample in Kernel Build
+   Test. We can see from the result that the VM Exit caused by page
+   fault is reduced by 35% after the bypass guest page fault
+   optimization. But the performance doesn’t change much which is
+   within 5% actually. The reason is probably due to two reasons: (1)
+   The L2 Page Fault only belongs to 13.13% in all page faults; (2)
+   The bypass guest page fault optimization reduces the L2 page faults
+   by 41011 times, but increase the L0 shadow page faults by 42774
+   times. So the overall performance is remained unchanged. The result
+   is similar in non-nested virtualization environment. We did a Linux
+   kernel build experiment which showed the page fault is reduced by
+   40% but the performance almost remained the same in the single
+   level guest VM.
+
+** Nested EPT Support
+   EPT can greatly improve Guest performance. There are two kinds of
+   EPT support in nested virtualization: the host EPT support in L0
+   VMM and the virtual EPT support in L1 VMM.  Host EPT is used by a
+   L0 VMM’s kvm-intel module. And virtual EPT is used by L1 VMM’s
+   kvm-intel module. Both EPT support can improve the performance a
+   lot.
+
+   Host EPT is supported in KVM for a long time as described in
+   Section 2. It also has a great impact on the nested virtualization
+   performance. Virtual EPT is supported only when the host EPT is
+   enabled, because the guest EPT is implemented by forwarding virtual
+   EPT events to the real EPT hardware which needs help from host EPT
+   module.
+
+   L1 VMM doesn’t have the EPT support before our nested
+   virtualization implementation. L2 Guest’s address translation has
+   to use the shadow page table mechanism and causes a lot of VM
+   Exits. We present the full EPT interface to L1 VMM by trapping all
+   the EPT events from L1 VMM, and forward events directly to the real
+   hardware, and the hardware EPT events are injected into L1 VMM by
+   L0 VMM, such as EXIT\_REASON\_EPT\_VIOLATION and
+   EXIT\_REASON\_EPT\_MISCONFIG event. If EPT is exposed to L1 VMM, VM
+   Exit will be significantly reduced and the performance can get a
+   boost. Figure 8 shows how the host EPT and virtual EPT work.
+
+** PV VMCS access Optimization
+   VMREAD and VMWRITE are used a lot in L1 VMM. We have a statistic on
+   the events when doing kernel build test.  Figure 9 is the breakdown
+   of all events in L1 Guest VM Exit reasons. 86% VM Exit is due to
+   VMREAD and VMWRITE.  Every time when L1 VMM needs to read the vVMCS
+   field before optimization, VMREAD and VMWRITE cause transition
+   between L1 VMM and L0 VMM. Then L0 VMM will return the field value
+   in vVMCS copy in the L0 VMM. But as the vVMCS in the L1 VMM's
+   memory is synchronized with the copy of vVMCS in L0 VMM, why not
+   read the field value in L1 VMM directly without switch to L0 VMM?
+   According to this, we make this PV VMCS Optimization.
+
+   In order to make the L1 VMM be able to read the vVMCS, we need to
+   expose vVMCS layout in L1 VMM and functions of how to read the
+   corresponding value. In normal situation, VMM doesn’t know the VMCS
+   data area format, which is used only by hardware. So if VMM knows
+   the structure, it only needs to read it in its own memory. Besides
+   adding PV VMCS reader and writer function in L1 VMM, L0 should be
+   slightly modified too. As we mentioned in Section 3, there is a
+   vVMCS copy in L0 VMM, which is synchronized with vVMCS in L1’s
+   memory. If this cache system is still in use, the stale value will
+   crash the whole virtualization module. So L0 need to operate on
+   L1’s VMPTRLD address directly.
+
+   PV VMCS effect is varied according to different applications. The
+   PV VMCS needs to modify the L1 VMM, which is not possible in some
+   situation such as when the guest is commercial operating
+   systems. Figure 10(a,b) shows the PV VMCS optimization using VMREAD
+   as an example.
+
+* Evaluation
+  We have implemented the basic nested architecture and optimizations
+  in KVM-84 \cite{linux-src}. Performance is essential to the
+  practical usability of nested virtualization. After describing our
+  basic nested virtualization design and its optimizations, we will
+  evaluate the nested Guest performance using several well- known
+  benchmarks.
+
+  Our goal is to make the performance of L2 Guest close to the normal
+  Guest (L1 Guest with host EPT performance), instead of improving the
+  performance of L1 Guest. So some results are given in L2/L1
+  performance, which means how close the L2 Guest can achieve the
+  normal guest virtual machine. In order to make the L2 time as
+  accurate as possible, we use KVM PV-TIMER module
+  (CONFIG\_KVM\_CLOCK=y) in guest operating system.
+
+  Most benchmarks are tested in 7 situations: L1(the normal virtual
+  machine performance), QEMU (use QEMU to run nested guest with host
+  EPT), BASIC (the basic architecture), Bypass (using both host and
+  virtual bypassing optimizations), PVVMCS (BASIC with PV VMCS
+  optimization), Host EPT (BASIC with Host EPT optimization),
+  Host/Virtual EPT (BASIC with Host and virtual EPT optimizations),
+  Host/Virtual EPT + PVVMCS (BASIC with Host and virtual EPT, and PV
+  VMCS optimizations).
+
+** Experimental Setup
+   We performed all the experiments on a server with a VT- enabled
+   Intel core i7-920 and 3 *2Gbytes of memory. All the operating
+   systems here used are Ubuntu 9.04 with the kernel compiled by
+   ourselves. The L0 VMM's kernel version is KVM- 84 got from
+   git.kernel.org with the nested patches. The L1 Guest's kernel
+   version is KVM-84 without any modification.  And the L2 Guest is an
+   unmodified Ubuntu 9.04. In our test, we only run one L1 Guest in L0
+   VMM, and one L2 Guest in L1 VMM.
+
+** Benchmarks
+   We use several benchmarks to evaluate our nested virtualization
+   performance. SPEC CPU2006 \cite{speccpu,speccpu-io} is
+   industry-standardized, Computing-intensive benchmark suite,
+   stressing a system's processor, memory subsystem and compiler.  It
+   contains two parts: the CINT tests and CFP tests. CINT is the
+   Integer Benchmarks. And CFP is the Floating Point Benchmarks. SPEC
+   CPU2006 benchmarks are derived from real world applications. They
+   spend at least 95% of its execution time in user space
+   \cite{speccpu-io}. As they have different characters in I/O and
+   computing, their performance in the nested virtualization
+   environment varies a lot. SysBench-CPU \cite{sysbench} uses
+   calculation of prime numbers up to a specified value.  And the
+   result is valued in finished time.
+
+   SysBench-Memory \cite{sysbench} benchmarks sequential memory reads
+   or writes. Kernel build is a synthetically benchmark used
+   widely. It involves with memory, I/O, CPU of an operating
+   system. The result is the total time of building. PF-Bench is a
+   micro-benchmarks written by ourselves, which continuously generates
+   page fault by touching first byte of each page in a large
+   memory. Its result is in finishing time, less is better.
+
+   SysBench also contains the modules of OLTP \cite{sysbench}. OLTP
+   stands for On-Line Transaction Processing. It uses SysBench to
+   generate transactions for MySQL. The results are measured in
+   transactions per second.
+
+** CPU Results
+   To evaluate computing-intensive workload, we use SPEC CPU2006 and
+   SysBench-CPU. SPEC CPU2006 results are in Figure 11 and
+   Figure 12. Running SPEC CPU2006 in QEMU nested environment has very
+   low performance, and some benchmarks fail to get a result. Here we
+   only give out bzip2 and gcc results in Table 1, which shows the
+   QEMU nested virtualization can get only about 5% of the normal
+   virtual machine.
+
+   Figure 11 shows that the total 12 CPU2006 CINT benchmarks
+   results. Omnetpp can achieve 97% of the normal L1 Guest
+   performance, optimization will degrade it. In other benchmarks, at
+   least one optimization can improve the performance. As analyzed in
+   Section 4, bypass guest page fault has limited effect on the
+   performance. The average basic result is 75.05%, and the average
+   bypass optimization result is 76.18%. PV VMCS optimization is
+   better than bypass, which has a average result of 78.74%. Only host
+   EPT optimization result (77.95%) is limited.  But both host EPT and
+   virtual EPT can improve the performance to 87%. If we use the two
+   EPT optimizations and PV VMCS, the average performance can be
+   88.08%. Figure 12 are the total 17 CPU2006 CFP benchmarks. The
+   effect of optimization in 7 benchmarks is quite obvious here. The
+   average performance radio of the six situations is: 59.57%, 61.87%,
+   64.64%, 62.66%, 81.11%, 85.68%. Host/virtual EPT or combined with
+   PV VMCS can get the best performance.  Bypass, only PV VMCS or only
+   host EPT can't improve performance much. We try to figure out the
+   reasons for differences optimization effect in SPEC CPU2006
+   benchmarks, but haven’t finished now. In conclusion, SPEC CPU2006
+   can achieve 88.08% in CINT benchmarks and 85.68% in CFP benchmarks
+   with host/virtual EPT optimizations and PV VMCS optimization.
+
+   SysBench-CPU is also a computing-intensive benchmark.  There are
+   little differences between the basic architecture and the
+   optimization performance in Table 2. But they improve the QEMU
+   nested performance by about 21 times. It’s easy to
+   understand. Because our VMX interface enables the L2 Guest’s
+   instruction execute on the physical CPU directly. Based on host and
+   virtual EPT, PV VMCS can improve the performance to 95.04%.
+
+** Memory Results
+   To evaluate memory performance in L2 Guest, we use SysBench-Memory
+   and Kernel Build Test to evaluate the performance.
+
+   Like the SysBench-CPU result, basic and optimization performance
+   vary slightly (in Table 3). Maybe the reason is the simple pattern
+   of the SysBench-Memory: just copy some amount of memory. Also, it
+   improves the QEMU nested performance by about 11 times. The best
+   result of SysBench- Memory is 94.62%, which is closed to the L1
+   Guest performance.
+
+   Kernel-Build Test is more complicated than the SysBench- Memory
+   Test (in Table 4). It is also affected by a lot of other factors,
+   such as the file I/O, CPU-compute parts. We use a special
+   configured kernel, which finishes running in a short time. The best
+   L2 Guest performance can achieve 80.08% of L1 Guest. Basic
+   architecture implementation has a low performance compared to L1
+   performance. But it is better than the QEMU nested. Bypass
+   optimization doesn’t improve the performance, actually it is worse
+   than the basic architecture. As we expected, Virtual EPT is the
+   best optimization of all.  Because the page fault is handled more
+   efficiently using EPT.
+
+   PF-Bench is a simple benchmark generating page faults. As we
+   expect, the best optimization here is the virtual EPT optimization
+   (in Table 5). Other ones will degrade the performance. Because this
+   benchmark generate a large number of page fault. To our surprise,
+   QEMU nested has a good performance better than several
+   optimizations such as Basic implementation and Bypass optimization.
+
+** I/O Performance
+   Due to the time limit, we haven’t optimized nested I/O.  Now the
+   I/O performance is low and is as expected. Table 6 is the SysBench
+   OLTP benchmark test results. The performance of L2 can be only
+   about 10% of the L1's. The low performance of I/O in L2 is
+   understandable, since the data must be transferred in two phases,
+   from L0 to L1, then from L1 to L2.  However, the best optimization
+   result is 3.7 times than the QEMU nested.
+
+* Related Work
+  Early nested virtualization was also called recursive virtual
+  machines more than 30 years ago. In 1976, the Kernelized VM/370 was
+  able to run a VMM recursively in a virtual proposes a computer
+  system with recursive virtual machine architecture, whose central
+  idea is the ability of any process to define a new virtual memory
+  within its own virtual memory.  Base on this idea, \cite{micro-vm}
+  use the microkernel to propose a novel approach to develop a
+  software-based virtualizable architecture called Fluke that allows
+  recursive virtual machine. Fluke’s main idea is the nested process
+  architecture, which treats the child process as a part of parent
+  process instead of independently of the parent process in
+  Unix. Using this architecture, Fluke can easily deploy arbitrary
+  level of nested virtual machines. It has a slowdown of about 0~35%
+  per virtual machine layer.
+
+  Blue Pill is the newest nested virtualization related work, which
+  targeted for security in Microsoft Windows \cite{bluepill}. It is a
+  thin hypervisor to control the OS and is responsible for controlling
+  "interesting" events inside the guest OS. Nested Virtualization is
+  one of features it supports. For example, Microsoft's Virtual PC is
+  a hypervisor runs on Blue Pill. And Virtual PC is obviously in a L1
+  VMM we mentioned above.  They implement their nested virtualization
+  in AMD SVM. IBM z/VM hypervisor also supports running a nested z/VM
+  operating system, but is intended only for testing purposes.  They
+  only use the nested as testing purposes and don’t care much about
+  the performance \cite{zvm, ibm-vm-faculty}.
+
+  Compared to their work, our work is done in Linux Kernel on the X86
+  platform, which is a prevalent configuration nowadays. And our work
+  is targeted for the general propose, which supports
+  full-virtualization and para-virtualization. Due to the VMX
+  instruction interface, our work can be easily applied to other VMM
+  on X86 platform. The high performance of our nested architecture
+  assures the practical usage in real world.
+
+* Conclusions and Future Work
+  In this paper we present the three-level nested virtualization
+  architecture, implementation and evaluation of a practical high
+  performance nested virtualization solution.  Nested virtualization
+  can provide more choices to customers and can be used in some new
+  virtualization usage models. We have minimized the overhead caused
+  by the additional virtualization level by three optimizations, while
+  existed solution based on QEMU emulation is inefficient and hard to
+  apply in practical.  Quantitative evaluation has demonstrated that
+  our nested solution performance can approach the original single
+  level guest. In some situation, the benchmarks results of nested
+  guest can range from 74% to 94% of the normal guest. And most can
+  get performance around 90% of the normal guest after three
+  optimizations. The overhead is acceptable.
+
+  As we can see in the evaluation, the I/O performance is low
+  (although our optimizations can improve it in some degree).  We plan
+  to give direct access to I/O devices for L2 Guests in the
+  future. Supporting SMP is another future work, which needs to deal
+  with problems such as vCPU migration. Our previous work concentrates
+  on how to make L2 Guest work with high performance. We believe if we
+  achieve this goal, the SMP can also have good performance without
+  much modification. The live migration of L2 Guest to other
+  hypervisor, even to L0 VMM on the same physical machine is another
+  interesting and reasonable work.
+
+#+LATEX: \section*{Acknowledgments}
+  We would like to thank the anonymous reviewers for their comments
+  and suggestions. This work has been supported by National High-Tech
+  Research and Development Plan of China under Grant No.2009AA010000,
+  N0.2007AA01Z177 and National Natural Science Foundation of China
+  under Grant No.90718040.
+
+#+LATEX: \bibliographystyle{IEEEtran}
+#+LATEX: \bibliography{nested}
