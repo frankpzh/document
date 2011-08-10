@@ -3,8 +3,11 @@
 *.log
 *.dvi
 *.aux
+*~
 compsc/compsc.tex
 compsc/compsc.pdf
+nested/nested.tex
+nested/nested.pdf
 docs/*.tex
 docs/*.pdf
 docs/*.out
