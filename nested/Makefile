@@ -1,6 +1,11 @@
 TITLE = nested
+EPS = nested1.eps nested2.eps nested3.eps nested4.eps
+EPS += nested5.eps nested6.eps nested10a.eps nested10b.eps
 
-$(TITLE).pdf: $(TITLE).tex $(TITLE).bib
+%.eps: %.png
+	sam2p $^ EPS: $@
+
+$(TITLE).pdf: $(TITLE).tex $(TITLE).bib $(EPS)
 	latex $(TITLE).tex
 	bibtex $(TITLE)
 	latex $(TITLE).tex
