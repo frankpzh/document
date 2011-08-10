@@ -33,22 +33,38 @@
       (load project-hook))))
 
 (add-hook 'c-mode-common-hook
-          (lambda nil
-            (project-call-hook)))
+          'project-call-hook)
 
 (defun project-find-tag (file)
   (let ((project (project-find file)))
     (when project
       (concat project "TAGS"))))
 
+(defun project-default-tag nil
+  (if (buffer-file-name)
+      (let ((tag-file (project-find-tag (buffer-file-name))))
+        (unless (equal tags-file-name tag-file)
+          (setq tags-file-name nil)
+          (setq tags-table-list nil))
+        tag-file)
+    nil))
+
 (setq default-tags-table-function
-      '(lambda nil
-         (project-find-tag (buffer-file-name))))
+      'project-default-tag)
 
 (defun project-tag-p (tag-file)
   (equal tag-file (project-find-tag tag-file)))
 
 (defconst project-etags-temp-buffer "*Find-result*")
+
+(defun project-call-find (dir-list out-buffer)
+  (let ((arg-list '("-name" "*.[chS]")))
+    (apply 'call-process
+           "find"
+           nil
+           out-buffer
+           nil
+           (append dir-list arg-list))))
 
 (defun project-make-tag (tag-file)
   (let ((project (project-find tag-file)))
@@ -58,12 +74,7 @@
     (with-current-buffer
         (get-buffer-create project-etags-temp-buffer)
       (setq default-directory project)
-      (call-process "find"
-                    nil
-                    (current-buffer)
-                    nil
-                    "-name"
-                    "*.[chS]")
+      (project-call-find '() (current-buffer))
       (call-process-region (point-min)
                            (point-max)
                            "etags"
