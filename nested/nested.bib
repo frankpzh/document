@@ -352,7 +352,7 @@
  keywords = {I/O, KVM, Linux, lguest, ring buffer, virtio, virtio_pci, virtualization, vring},
 } 
 
-@inproceedings{Lauer:1973:RVM:800122.803951,
+@inproceedings{recur-vm,
  author = {Lauer, Hugh C. and Wyeth, David},
  title = {A recursive virtual machine architecture},
  booktitle = {Proceedings of the workshop on virtual computer systems},
@@ -380,4 +380,104 @@
     title = {{Microkernel meet recursive virtual machines}},
     url = {http://eprints.kfupm.edu.sa/50691/},
     year = {1996}
+}
+
+@article{view-cloud,
+ author = {Armbrust, Michael and Fox, Armando and Griffith, Rean and Joseph, Anthony D. and Katz, Randy and Konwinski, Andy and Lee, Gunho and Patterson, David and Rabkin, Ariel and Stoica, Ion and Zaharia, Matei},
+ title = {A view of cloud computing},
+ journal = {Commun. ACM},
+ issue_date = {April 2010},
+ volume = {53},
+ issue = {4},
+ month = {April},
+ year = {2010},
+ issn = {0001-0782},
+ pages = {50--58},
+ numpages = {9},
+ url = {http://doi.acm.org/10.1145/1721654.1721672},
+ doi = {http://doi.acm.org/10.1145/1721654.1721672},
+ acmid = {1721672},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+} 
+
+@techreport{berkeley-cloud,
+    abstract = {{(from executive summary) Cloud Computing, the long-held dream of computing as a utility, has the potential to transform a large part of the
+IT industry, making software even more attractive as a service and shaping the way IT hardware is designed and
+purchased. Developers with innovative ideas for new Internet services no longer require the large capital outlays
+in hardware to deploy their service or the human expense to operate it. They need not be concerned about overprovisioning
+for a service whose popularity does not meet their predictions, thus wasting costly resources, or underprovisioning
+for one that becomes wildly popular, thus missing potential customers and revenue. Moreover, companies
+with large batch-oriented tasks can get results as quickly as their programs can scale, since using 1000 servers for one
+hour costs no more than using one server for 1000 hours. This elasticity of resources, without paying a premium for
+large scale, is unprecedented in the history of IT.}},
+    author = {Armbrust, Michael and Fox, Armando and Griffith, Rean and Joseph, Anthony D. and Katz, Randy and Konwinski, Andy and Lee, Gunho and Patterson, David and Rabkin, Ariel and Stoica, Ion and Zaharia, Matei},
+    citeulike-article-id = {4493934},
+    day = {10},
+    keywords = {cloud-computing, economics, lock-in},
+    month = feb,
+    posted-at = {2009-05-08 16:30:35},
+    priority = {2},
+    school = {UC Berkeley Reliable Adaptive Distributed Systems Laboratory},
+    title = {Above the Clouds: A Berkeley View of Cloud Computing},
+    year = {2009}
+}
+
+@article{popek,
+ author = {Popek, Gerald J. and Goldberg, Robert P.},
+ title = {Formal requirements for virtualizable third generation architectures},
+ journal = {Commun. ACM},
+ volume = {17},
+ issue = {7},
+ month = {July},
+ year = {1974},
+ issn = {0001-0782},
+ pages = {412--421},
+ numpages = {10},
+ url = {http://doi.acm.org/10.1145/361011.361073},
+ doi = {http://doi.acm.org/10.1145/361011.361073},
+ acmid = {361073},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ keywords = {abstract model, formal requirements, hypervisor, operating system, proof, sensitive instruction, third generation architecture, virtual machine, virtual machine monitor, virtual memory},
+} 
+
+@manual{amd-v,
+ author = {AMD},
+ title = {AMD64 Virtualization Codenamed "Pacifica" Technology: Secure Virtual Machine Architecture Reference Manual},
+ year = {2005},
+ month = {May},
+ url = {http://www.mimuw.edu.pl/~vincent/lecture6/sources/amd-pacifica-specification.pdf},
+}
+
+@inproceedings{turtles,
+ author = {Ben-Yehuda, Muli and Day, Michael D. and Dubitzky, Zvi and Factor, Michael and Har'El, Nadav and Gordon, Abel and Liguori, Anthony and Wasserman, Orit and Yassour, Ben-Ami},
+ title = {The turtles project: design and implementation of nested virtualization},
+ booktitle = {Proceedings of the 9th USENIX conference on Operating systems design and implementation},
+ series = {OSDI'10},
+ year = {2010},
+ location = {Vancouver, BC, Canada},
+ pages = {1--6},
+ numpages = {6},
+ url = {http://portal.acm.org/citation.cfm?id=1924943.1924973},
+ acmid = {1924973},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA},
+} 
+
+@electronic{kvm-nested,
+ title = {KVM Nested Virtualization in the works},
+ url = {http://www.linux-kvm.com/content/kvm-nested-virtualization-works},
+}
+
+@electronic{xp-mode,
+ title = {Windows XP Mode and Windows Virtual PC},
+ url = {http://www.microsoft.com/windows/virtual-pc/default.aspx},
+}
+
+@patent{shadow,
+ title = {Virtualization system including a virtual machine monitor for a computer with a segmented architecture},
+ nationality = {United States},
+ number = {US 6,397,242 B1},
+ year = {2002},
 }
