@@ -7,6 +7,7 @@
 #+OPTIONS: toc:nil
 
 #+LATEX_HEADER: \usepackage{cases}
+#+LATEX_HEADER: \usepackage{graphicx}
 
 #+LATEX_HEADER: \author{
 #+LATEX_HEADER: \IEEEauthorblockN{Zhenhao Pan}
@@ -26,7 +27,8 @@
 #+LATEX_HEADER: Email: eddie.dong@intel.com}
 #+LATEX_HEADER: }
 
-#+begin_abstract
+#+LATEX: \begin{abstract}
+
 This paper describes a nested virtualization solution, which allows
 virtual machine monitor (VMM) with virtual machine to run within
 another virtual machine with low overhead. Previous nested
@@ -43,14 +45,15 @@ unnecessary page faults introduced by shadow page table in nested VMM;
 VMM. Experimental results of benchmarks such as SPEC CPU 2006 and
 SysBench show that performance of our nested guest is close to single
 level virtual machine in both CPU-intensive and memory-intensive
-benchmarks.  Most benchmarks can achieve about 85\% performance of a
-single level guest, which makes the nested guest comparable with a
-conventional one.
-#+end_abstract
+benchmarks. The overhead on CPU is 5.22\% and the overhead on memory
+is 5.69\%, which makes the nested guest comparable with a conventional
+one.
+#+LATEX: \end{abstract}
 
-#+begin_IEEEkeywords
+#+LATEX: \begin{IEEEkeywords}
+
 Virtualization, Nested Virtualization, Virtual Machine Monitor
-#+end_IEEEkeywords
+#+LATEX: \end{IEEEkeywords}
 
 * Introduction
   Virtualization has been widely used in recent days.  In data centers
@@ -59,8 +62,8 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   \cite{survey-vm,view-cloud,berkeley-cloud}. There are commercial VMM
   (Virtual Machine Monitor) implementations such as VMware
   \cite{vmware} and Microsoft Hyper-V \cite{hyper-v}, and open source
-  implementations such as Xen \cite{xen,xen-art,xen3-art,mem-manage},
-  KVM \cite{kvm,kvm-paper,linux-src}, VirtualBox \cite{vbox} and
+  implementations such as Xen \cite{xen,xen-art},
+  KVM \cite{kvm,kvm-paper}, VirtualBox \cite{vbox} and
   lguest \cite{lguest}. Para-virtualization and full virtualization
   are two common virtualization techniques. Para-virtualization
   modifies the operating systems to provide virtualization on legacy
@@ -73,9 +76,9 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   has not been widely used, we can still list several important usage
   models. We believe some of them have great potential in the future.
 
-  #+CAPTION: Nested Virtualization Server
-  #+LABEL: fig:nestsrv
-  [[./nested1.eps]]
+#+CAPTION: Nested Virtualization Server
+#+LABEL: fig:nestsrv
+[[./nested1.eps]]
 
   * Some latest operating system features and applications are
     necessary to run in virtualization environments. Windows XP mode
@@ -102,26 +105,26 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
 
   To make virtualization much easier and faster, hardware vendors like
   Intel and AMD have added extensions to x86 architecture
-  \cite{intel-vt,sw-manual,amd-v}. Previous researches
-  \cite{measure-cpu-io-xen,opt-net,opt-xen-vt,vmm-bypass-io,diag-perf-xen,bridge-gap-sw-hw,compare-vt}
-  show that virtualization can achieve very high performance with
-  these extensions. But on nested virtualization, current solutions
-  have far worse performance than conventional
-  virtualization. Previous studies \cite{recur-vm,micro-vm} of nested
-  virtualization was designed using micro-kernels or on special
-  virtualizable hardware architecture. Among the recent virtualization
-  implementations, only KVM can support nested
-  virtualization. Furthermore, KVM only supports AMD-V in nested
-  virtualization \cite{kvm-nested}. On Intel processor, KVM can only
-  using QEMU \cite{qemu} emulation, which has a very low performance,
-  and is not practical in reality.
+  \cite{intel-vt,amd-v}. Previous researches
+  \cite{measure-cpu-io-xen,opt-net,bridge-gap-sw-hw,compare-vt} show
+  that virtualization can achieve very high performance with these
+  extensions. But on nested virtualization, current solutions have far
+  worse performance than conventional virtualization. Previous studies
+  \cite{recur-vm,micro-vm} of nested virtualization was designed using
+  micro-kernels or on special virtualizable hardware
+  architecture. Among the recent virtualization implementations, only
+  KVM can support nested virtualization. Furthermore, KVM only
+  supports AMD-V in nested virtualization \cite{kvm-nested}. On Intel
+  processor, KVM can only using QEMU \cite{qemu} emulation, which has
+  a very low performance, and is not practical in reality.
 
   Base on the hardware extensions for virtualization, this paper
   proposes a new nested virtualization architecture in Linux
   kernel. Our work uses the VMX instructions as interfaces, which is
   general and easy enough to apply to most VMMs on x86
   platform. Benchmark results indicate that our nested virtualization
-  architecture has practical high performance *?*.
+  architecture only introduces 5.22% overhead on CPU and 5.69%
+  overhead on memory.
 
   The remainder of this paper is organized as follows: Section
   \ref{sec-2} introduces the hardware extensions for virtualization
@@ -148,9 +151,9 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    the latter one. In this paper, our work is based on Intel VMX
    extension \cite{sw-manual}.
 
-   #+CAPTION: VMX instruction, interaction of VMM and Guest
-   #+LABEL: fig:vmx
-   [[./nested2.eps]]
+#+CAPTION: VMX instruction, interaction of VMM and Guest
+#+LABEL: fig:vmx
+[[./nested2.eps]]
 
    \figurename \ref{fig:vmx} represents the instructions of VMX and
    how VMM and guests interact with each other. In terms of VMX, two
@@ -214,9 +217,9 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   extensions. The nested VMM only has a hardware layer provided by the
   underlying VMM, which has no hardware extension.
 
-  #+CAPTION: Three-Level Nested Virtualization Architecture
-  #+LABEL: fig:threelv
-  [[./nested3.eps]]
+#+CAPTION: Three-Level Nested Virtualization Architecture
+#+LABEL: fig:threelv
+[[./nested3.eps]]
 
   We designed a three-level architecture for nested virtualization.
   Our design provides the ability to use the hardware extensions for
@@ -244,13 +247,13 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   Guest using VMX extension. The following subsections explains
   the nested interface.
 
-  #+CAPTION: Non-Nested Virtualization CPU Execution Flow
-  #+LABEL: fig:non-nest-flow
-  [[./nested4.eps]]
+#+CAPTION: Non-Nested Virtualization CPU Execution Flow
+#+LABEL: fig:non-nest-flow
+[[./nested4.eps]]
 
-  #+CAPTION: Nested Virtualization CPU Execution Flow
-  #+LABEL: fig:nest-flow
-  [[./nested5.eps]]
+#+CAPTION: Nested Virtualization CPU Execution Flow
+#+LABEL: fig:nest-flow
+[[./nested5.eps]]
 
 ** Nested VMX Interface
    As we described in Section \ref{sec-2}, VMCS, which controls the
@@ -324,9 +327,9 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   This section, we describes the implementation details of our nested
   virtualization architecture.
 
-  #+CAPTION: Nested VMCS Design
-  #+LABEL: fig:design
-  [[./nested6.eps]]
+#+CAPTION: Nested VMCS Design
+#+LABEL: fig:design
+[[./nested6.eps]]
 
 ** Nested VMCS Implementation
    In nested VMCS implementation, the iVMCS for L1 VMM is in the L0
@@ -433,9 +436,9 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    expected effect of this optimization is reducing the count of L2
    page faults we caught.
    
-   #+CAPTION: Guest Page Fault Bypassing in Kernel Building
-   #+LABEL: fig:bypass-pf
-   [[./nested7.eps]]
+#+CAPTION: Guest Page Fault Bypassing in Kernel Building
+#+LABEL: fig:bypass-pf
+[[./nested7.eps]]
 
    \figurename \ref{fig:bypass-pf} shows a 60 seconds sample of page
    fault count. In the meantime, we get a 5% performance gain during
@@ -458,9 +461,9 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    support. Address translation of L2 Guest has to use the shadow page
    table mechanism and causes a lot of VM Exits.
 
-   #+CAPTION: Virtual EPT Support
-   #+LABEL: fig:vept
-   [[./nested8.eps]]
+#+CAPTION: Virtual EPT Support
+#+LABEL: fig:vept
+[[./nested8.eps]]
 
    We present a full EPT interface to L1 VMM by trapping all the EPT
    events from L1 VMM, and forward them directly to the real
@@ -473,8 +476,8 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    forwarding events to the host EPT. \figurename \ref{fig:vept} shows
    how the host EPT and virtual EPT work.
 
-   #+CAPTION: L1 VMM Events Breakdown
-   #+LABEL: tbl:vmevents
+#+CAPTION: L1 VMM Events Breakdown
+#+LABEL: tbl:vmevents
    |-----------+------------|
    | Event     | Percentage |
    |-----------+------------|
@@ -496,13 +499,13 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    own copy of vVMCS, thus it has full knowledge to perform VMREAD and
    VMWRITE by itself.
 
-   #+CAPTION: Before PV VMCS Optimization
-   #+LABEL: fig:before-opt
-   [[./nested10a.eps]]
+#+CAPTION: Before PV VMCS Optimization
+#+LABEL: fig:before-opt
+[[./nested10a.eps]]
 
-   #+CAPTION: After PV VMCS Optimization
-   #+LABEL: fig:after-opt
-   [[./nested10b.eps]]
+#+CAPTION: After PV VMCS Optimization
+#+LABEL: fig:after-opt
+[[./nested10b.eps]]
 
    In order to enable vVMCS access in L1 VMM, we need to expose vVMCS
    layout and accessing method in L1 VMM. Besides, L0 VMM should be
@@ -575,8 +578,8 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
 #+END_LaTeX
 
 ** CPU Performance
-   #+CAPTION: SysBench-CPU Results
-   #+LABEL: tbl:sysbench-cpu
+#+CAPTION: SysBench-CPU Results
+#+LABEL: tbl:sysbench-cpu
    |---------------------------------+------------|
    |                                 | Results(s) |
    |---------------------------------+------------|
@@ -606,8 +609,8 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    the QEMU nested virtualization can only get about 5% of a L1
    Guest's performance.
 
-   #+CAPTION: QEMU Nested SPEC CPU 2006 Results
-   #+LABEL: tbl:cpu2006
+#+CAPTION: QEMU Nested SPEC CPU 2006 Results
+#+LABEL: tbl:cpu2006
    |-------+-----+-------|
    |       |  L1 |  QEMU |
    |-------+-----+-------|
@@ -616,14 +619,32 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    |-------+-----+-------|
 
    \figurename \ref{fig:spec_cint} shows 12 results of CINT
-   benchmarks, and \figurename \ref{fig:spec_cfp} are the results of
+   benchmarks, and \figurename \ref{fig:spec_cfp} shows the results of
    CFP benchmarks. These results are normalized to L1 Guest's
    results. Compare to SysBench-CPU, SPEC CPU 2006 is a mixed
    benchmark, which consists of CPU workload, memory workload and a
    little bit of I/O workload. The effects of optimizations varies
    between different tests.
 
-*** Effect of host EPT and virtual EPT
+*** Effect of virtual EPT
+    Virtual EPT works extremely well in some of the benchmarks,
+    including gcc in CINT, soplex and tonto in CFP. After an
+    investigation on these benchmarks, we figure out that these
+    benchmarks perform many memory allocations and deallocations
+    \cite{speccpu-mem-footprint}. These activities lead to page table
+    changes, and therefore provide bad results with shadow page
+    table. In the following subsection, we will discuss performance of
+    shadow page table in detail.
+
+    Also, virtual EPT does not work in some cases, including sjeng,
+    xalancbmk in CINT and bwaves, zeusmp and lbm in CFP. A performance
+    evaluation on Intel EPT \cite{perf-ept} uncovers that the EPT has
+    lower performance under: (1) little MMU activity (2) high TLB miss
+    rate. A research of performance counters under SPEC CPU benchmarks
+    \cite{speccpu-perf-counter} shows that, all these benchmarks have
+    relatively high TLB miss rate, together with few memory
+    allocation/deallocation activities \cite{speccpu-mem-footprint}.
+
 *** Effect of PV VMCS
     Actually, PV VMCS is a tradeoff that works only when the frequency
     of VMREAD and VMWRITE is high enough. In a rare case, the
@@ -640,8 +661,8 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    which means 13.53% and 16.71% overhead.
 
 ** Memory Performance
-   #+CAPTION: SysBench-Memory Results
-   #+LABEL: tbl:sysbench-mem
+#+CAPTION: SysBench-Memory Results
+#+LABEL: tbl:sysbench-mem
    |---------------------------------+------------|
    |                                 | Results(s) |
    |---------------------------------+------------|
@@ -661,8 +682,8 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    about 11 times because of the VMX interface. The best result of
    SysBench-Memory presents 5.69% overhead compare to L1 Guest.
 
-   #+CAPTION: PF-Bench Results
-   #+LABEL: tbl:pfbench
+#+CAPTION: PF-Bench Results
+#+LABEL: tbl:pfbench
    |---------------------------------+------------|
    |                                 | Results(s) |
    |---------------------------------+------------|
@@ -704,8 +725,8 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
    levels.
 
 ** I/O Performance
-   #+CAPTION: SysBench-OLTP Results
-   #+LABEL: tbl:sysbench-oltp
+#+CAPTION: SysBench-OLTP Results
+#+LABEL: tbl:sysbench-oltp
    |---------------------------------+--------------|
    |                                 | Results(t/s) |
    |---------------------------------+--------------|
@@ -743,8 +764,7 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   this idea, Bryan et al. \cite{micro-vm} use the micro-kernel to
   propose a novel approach to develop a software-based virtualizable
   architecture called Fluke. Fluke allows recursive virtual machine,
-  and can easily deploy arbitrary level of nested virtual machines. It
-  has a slowdown of about 0~35% *?* per virtual machine layer.
+  and can easily deploy arbitrary level of nested virtual machines.
 
   Blue Pill \cite{bluepill} is targeted for security in Windows. It is
   a thin VMM to control the OS and is responsible for controlling
@@ -762,18 +782,14 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   similar performance overhead.
 
 * Conclusions and Future Work
-  In this paper we present the design, implementation and evaluation
-  of a three-level nested virtualization architecture for practical
-  high performance nested virtualization. Nested virtualization can
-  can be used in several usage models such as debugging and live
-  migration. We have minimized the overhead caused by the additional
-  level by three optimizations, while existed solution based on QEMU
-  emulation is inefficient and hard to apply in practical.  The
-  evaluation has demonstrated that performance of our nested solution
-  can approach a conventional single level guest. In some situation,
-  the benchmarks results of nested guest can range from 74% to 94% of
-  a conventional guest, and most of them can get performance around
-  90% after three optimizations. The overhead is acceptable.
+  Nested virtualization can can be used in several usage models such
+  as debugging and live migration. In this paper we present the
+  design, implementation and evaluation of a three-level nested
+  virtualization architecture for practical high performance nested
+  virtualization. We have minimized the overhead caused by the
+  additional level by three optimizations. The evaluation demonstrates
+  that the our implementation introduces 5.22% overhead on CPU and
+  5.69% overhead on memory, and is close to a conventional one.
 
   The I/O performance of our solution is relatively low compared to a
   conventional guest, and optimizing it is the most relevant future

@@ -5,9 +5,7 @@
       ; These are for Orgmode 7
       (require 'org-latex)
       (require 'org-special-blocks)
-      (setq org-export-latex-default-packages-alist
-            '(("" "hyperref" nil)
-              ("" "graphicx" t))))
+      (setq org-export-latex-default-packages-alist nil))
   (error
    ; Fall back to Orgmode 6
    (require 'org-export-latex)))
