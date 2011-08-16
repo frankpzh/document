@@ -42,12 +42,11 @@ Bypassing, which permits nested guests to handle page faults without
 VM Exit; (2) Virtual EPT (Extended Page Table), which eliminates
 unnecessary page faults introduced by shadow page table in nested VMM;
 (3) PV VMCS, which provides more effective VMCS accessing for nested
-VMM. Experimental results of benchmarks such as SPEC CPU 2006 and
-SysBench show that performance of our nested guest is close to single
-level virtual machine in both CPU-intensive and memory-intensive
-benchmarks. The overhead on CPU is 5.22\% and the overhead on memory
-is 5.69\%, which makes the nested guest comparable with a conventional
-one.
+VMM. Experiment results show that performance of our nested guest is
+close to single level virtual machine in both CPU-intensive and
+memory-intensive benchmarks. The overhead on CPU is 5.22\% and the
+overhead on memory is 5.69\%, which makes the nested guest comparable
+with a conventional one.
 #+LATEX: \end{abstract}
 
 #+LATEX: \begin{IEEEkeywords}
@@ -76,10 +75,6 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
   has not been widely used, we can still list several important usage
   models. We believe some of them have great potential in the future.
 
-#+CAPTION: Nested Virtualization Server
-#+LABEL: fig:nestsrv
-[[./nested1.eps]]
-
   * Some latest operating system features and applications are
     necessary to run in virtualization environments. Windows XP mode
     \cite{xp-mode} is an example, which runs traditional Windows XP
@@ -98,10 +93,9 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
 
   * For future cloud environment, the virtualization solutions may
     vary, like diverse operating systems currently. Different guest OS
-    images may be not able to run on or live migrate between different
-    VMMs \cite{lm}.  The nested virtualization is a solution to
-    this problem. In \figurename \ref{fig:nestsrv}, two traditional
-    VMM can live-migrate their OS to the nested VMM.
+    images may not be able to run on or live migrate \cite{lm} between
+    different VMMs. The nested virtualization is a solution to this
+    problem.
 
   To make virtualization much easier and faster, hardware vendors like
   Intel and AMD have added extensions to x86 architecture
@@ -637,15 +631,14 @@ Virtualization, Nested Virtualization, Virtual Machine Monitor
     shadow page table in detail.
 
     Also, virtual EPT does not work in some cases, including sjeng,
-    xalancbmk in CINT and bwaves, zeusmp and lbm in CFP. A performance
-    evaluation on Intel EPT \cite{perf-ept} uncovers that the EPT has
-    lower performance under: (1) little MMU activity (2) high TLB miss
-    rate. A research of performance counters under SPEC CPU benchmarks
-    \cite{speccpu-perf-counter} shows that, all these benchmarks have
-    relatively high TLB miss rate, together with few memory
+    xalancbmk in CINT and bwaves, zeusmp and lbm in CFP. The
+    performance of Intel EPT has lower performance under under: (1)
+    little MMU activity (2) high TLB miss rate \cite{perf-ept}. And,
+    all these benchmarks have relatively higher TLB miss rate
+    \cite{speccpu-perf-counter}, together with few memory
     allocation/deallocation activities \cite{speccpu-mem-footprint}.
 
-*** Effect of PV VMCS
+*** Effect of PV VMCS !
     Actually, PV VMCS is a tradeoff that works only when the frequency
     of VMREAD and VMWRITE is high enough. In a rare case, the
     synchronization cost of vVMCS is larger than the performance gain,
