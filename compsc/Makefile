@@ -24,7 +24,7 @@ $(TITLE).tex: $(TITLE).org
 
 .PHONY: show
 show: $(TITLE).pdf
-	okular $(TITLE).pdf
+	okular $(TITLE).pdf || evince $(TITLE).pdf
 
 .PHONY: clean
 clean:
