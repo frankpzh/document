@@ -49,7 +49,7 @@ cloning
   Virtualized systems have recently been widely used. In data centers
   and cloud computing environments, virtualization technology largely
   reduced the hardware costs and resource
-  costs\cite{view_cloud,view_cloud_berk,hpc_case}. In such an
+  costs\cite{view-cloud,berkeley-cloud,hpc-case}. In such an
   environment, not only the performance of CPU and memory
   virtualization, but also performance of network I/O virtualization
   are highly demanded.
@@ -63,19 +63,19 @@ cloning
   it can be moved out to ensure the quality of services.
 
   In recent researches on virtualization, CPU and memory
-  virtualization have been discussed in depth\cite{cmp_virt}, and the
+  virtualization have been discussed in depth\cite{compare-vt}, and the
   performance with recent techniques is near native
-  one\cite{xenart,mem_manage}. But I/O device virtualization is still
+  one\cite{xen-art,mem-manage}. But I/O device virtualization is still
   a challenge, especially on network devices. Emulated network
-  I/O\cite{vmware_io} provides a complete emulation of the existing
+  I/O\cite{vmware-io} provides a complete emulation of the existing
   network devices, and connects physical network device together with
   a virtual bridge. Paravirtualized (PV) network I/O, which uses a
-  simplified device model, has benefited both safety\cite{safe_hw_xen}
+  simplified device model, has benefited both safety\cite{safe-hw-xen}
   and performance compared to emulated network I/O. Although recent
-  efforts\cite{opt_net,bridge_gap} largely improve the performance of
+  efforts\cite{opt-net,bridge-gap-sw-hw} largely improve the performance of
   PV network I/O, it still has a performance gap with native network
-  I/O\cite{diag_perf,opt_net,bridge_gap} together with high CPU
-  overhead. Using pass-through I/O\cite{bypass_io,vtd}, aka direct
+  I/O\cite{diag-perf-xen,opt-net,bridge-gap-sw-hw} together with high CPU
+  overhead. Using pass-through I/O\cite{bypass-io,vtd}, aka direct
   I/O, virtualized system can directly access physical device without
   interceptions of the hypervisor, thus it can provide a near native
   performance. Single Root I/O Virtualization (SR-IOV)\cite{sriov} is
@@ -91,7 +91,7 @@ cloning
   totally controlled by the virtual machine, and its internal state is
   not available to the hypervisor. Several efforts have been made on
   enabling pass-through network I/O
-  migration\cite{lm_direct_io,bonding,NPIA_intel}, but none of them
+  migration\cite{lm-direct-io,bonding,npia-intel}, but none of them
   solves the problem perfectly.
 
   In this paper, we introduce CompSC, a mechanism which can
@@ -105,11 +105,11 @@ cloning
   little code changes on the device driver, CompSC achieved our object
   perfectly with little performance impact at runtime, and little time
   cost for state cloning. Furthermore, compare to the other
-  solutions\cite{lm_direct_io,bonding,NPIA_intel}, CompSC provided
+  solutions\cite{lm-direct-io,bonding,npia-intel}, CompSC provided
   accuracy on statistic registers.
 
   We implemented CompSC on Xen\cite{xen} platform, with Intel 82576
-  SR-IOV\cite{sriov,sriov_xen} network card\cite{kawela}. In the
+  SR-IOV\cite{sriov,sriov-xen} network card\cite{kawela}. In the
   evaluation section, we measured the performance impact of our method
   using micro benchmarks, scp, netperf\cite{netperf} and
   SPECweb2009\cite{specweb}. The result shown that the performance
@@ -135,7 +135,7 @@ cloning
 * Related work
   There have been several efforts on this topic. In the study by Edwin
   et al.\cite{bonding}, Linux Ethernet Bonding
-  Driver\cite{bonding_drv} is used. Not only the pass-through network
+  Driver\cite{bond-drv} is used. Not only the pass-through network
   device, a paravirtualized network device is also used as a
   backup. Before the start of a migration, the pass-through device was
   hot unplugged using an ACPI event. In this way, there is no need to
@@ -148,13 +148,13 @@ cloning
   the hot plug of the pass-through device after the migration clears
   every statistic registers in the device. Thus the function of
   statistic becomes inaccurate or disabled. In a similar work by Asim
-  and Michael\cite{lm_direct_io}, a shadow driver is implemented to
+  and Michael\cite{lm-direct-io}, a shadow driver is implemented to
   redirect network requests to a backup device during the
   migration. It can be applied to any operation systems, but it
   requires as large as 11 KLOC change on both the hypervisor and the
   guest kernel.
 
-  Network Plug-In Architecture (NPIA/NPA)\cite{NPIA_intel,NPA} is an
+  Network Plug-In Architecture (NPIA/NPA)\cite{npia-intel,npa} is an
   architecture raised by VMware and Intel. Instead of supporting all
   pass-through network devices, NPIA only focuses on
   SR-IOV\cite{sriov} network devices. NPIA designs a shell-plugin pair
@@ -277,7 +277,7 @@ cloning
    example. The only way to alter the count is trying to drop a
    packet. It is difficult, for it needs cooperation from the one on
    the other side of the network wire. All the existing
-   solutions\cite{lm_direct_io,bonding,NPIA_intel} do not cover this
+   solutions\cite{lm-direct-io,bonding,npia-intel} do not cover this
    register. They all do the device initialization after the
    migration, reset all statistic registers, and make the functions of
    statistic inaccurate or disabled.
@@ -349,7 +349,7 @@ cloning
   Paravirtualized network device\cite{pv} needs two chunks of codes
   working together to achieve the migration: One is the front-end
   driver, and the other is the back-end driver. Emulated network
-  device\cite{vmware_io} has another pair, which consists of the
+  device\cite{vmware-io} has another pair, which consists of the
   emulator and the device driver. To avoid making up hundreds of
   "back-end" chunks of codes, in our solution, the hypervisor and
   virtual machine management tools did not have any device-specific
@@ -900,7 +900,10 @@ cloning
   implementation effort and could be easily deployed on different
   devices.
 
-* Comments from Middleware
+#+LATEX: \bibliographystyle{unsrt}
+#+LATEX: \bibliography{compsc}
+
+* Comments from Middleware                                         :noexport:
   I would have liked some more results related to the robustness of
   implementation, e.g. how many times did you manage to migrate back
   and forth or in a circle around multiple random machines. Also,
@@ -973,5 +976,3 @@ cloning
   (e.g., a 10-Gbps network interface), the direct I/O driver would
   outperform the para-virtualized one. It would be interesting to see
   in these conditions what are the performance of CompSC.
-
-#+LATEX: \input{compsc-bib.tex}
