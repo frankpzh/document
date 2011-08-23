@@ -19,6 +19,7 @@ BEGIN {
 		gsub(/\[\[[^\]]*\]\]/, "", $0)
 		gsub(/\\cite{[^}]*}/, "", $0)
 		gsub(/\\ref{[^}]*}/, "", $0)
+		gsub(/\\figurename/, "", $0)
 		print $0
 	}
 }
