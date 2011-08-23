@@ -51,6 +51,8 @@
 (global-set-key (kbd "C-c a") 'org-agenda)
 
 (global-set-key (kbd "<f2>") 'undo)
+(global-set-key (kbd "C-<f2>") 'kmacro-start-macro-or-insert-counter)
+(global-set-key (kbd "M-<f2>") 'kmacro-end-or-call-macro)
 (global-set-key (kbd "<f3>") 'find-map)
 (global-set-key (kbd "<f3> t") 'taglist)
 (global-set-key (kbd "<f3> g") 'grep)
@@ -114,6 +116,9 @@
 
 ;; Disable Version Control
 (setq vc-handled-backends nil)
+
+;; ispell language
+(setq ispell-local-dictionary "american")
 
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
