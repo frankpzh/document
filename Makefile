@@ -14,8 +14,9 @@
 help:
 	@echo Frank Pan\'s power makefile
 	@echo ---------------------------------------------------
-	@echo set-emacs: setting emacs config
-	@echo set-git:   setting git config
+	@echo set-emacs:  setting emacs config
+	@echo set-git:    setting git config
+	@echo set-aspell: setting aspell personal dictionary
 	@echo
 	@echo WARNING: set-* will kill your old config
 
@@ -30,3 +31,8 @@ set-emacs:
 set-git:
 	rm -rf ~/.gitconfig
 	cd ~ && ln -s $(PWD)/.gitconfig
+
+.PHONY: set-aspell
+set-aspell:
+	rm -rf ~/.aspell.en.pws
+	cd ~ && ln -s $(PWD)/.aspell.en.pws
