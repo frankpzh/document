@@ -1,25 +1,22 @@
 #+TITLE: CompSC: Live Migration with pass-through devices
-#+LaTeX_CLASS: usenix
+#+LaTeX_CLASS: sigplan
 #+STARTUP: showall
 #+OPTIONS: author:nil
 #+OPTIONS: toc:nil
 
 #+LATEX_HEADER: \usepackage{xspace}
+#+LATEX_HEADER: \usepackage{epsfig}
 #+LATEX_HEADER: \newcommand{\us}{\,$\mu$s\xspace}
 
-#+LATEX_HEADER: \author{
-#+LATEX_HEADER: \authname{Zhenhao Pan}
-#+LATEX_HEADER: \authaddr{Tsinghua University}
-#+LATEX_HEADER: \authurl{\url{frankpzh@gmail.com}}
-#+LATEX_HEADER: \and
-#+LATEX_HEADER: \authname{Yaozu Dong}
-#+LATEX_HEADER: \authaddr{Intel Corp.}
-#+LATEX_HEADER: \authurl{\url{eddie.dong@intel.com}}
-#+LATEX_HEADER: \and
-#+LATEX_HEADER: \authname{Yu Chen}
-#+LATEX_HEADER: \authaddr{Tsinghua University}
-#+LATEX_HEADER: \authurl{\url{yuchen@tsinghua.edu.cn}}
-#+LATEX_HEADER: }
+#+LATEX_HEADER: \authorinfo{Zhenhao Pan}
+#+LATEX_HEADER: {Tsinghua University}
+#+LATEX_HEADER: {frankpzh@gmail.com}
+#+LATEX_HEADER: \authorinfo{Yaozu Dong}
+#+LATEX_HEADER: {Intel Corp.}
+#+LATEX_HEADER: {eddie.dong@intel.com}
+#+LATEX_HEADER: \authorinfo{Yu Chen}
+#+LATEX_HEADER: {Tsinghua University}
+#+LATEX_HEADER: {yuchen@tsinghua.edu.cn}
 
 #+LATEX: \begin{abstract}
 
@@ -43,8 +40,8 @@ less than para-virtualized device.
 
 #+LATEX: \end{abstract}
 
-*Keywords*: Virtualization, Live migration, Pass-through device, State
-cloning
+#+LATEX: \keywords
+Virtualization, Live migration, Pass-through device, State cloning
 
 * Introduction
   Virtualized systems have recently been widely used. In data centers
