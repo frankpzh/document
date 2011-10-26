@@ -6,6 +6,10 @@ $(OUTPUT): resume.dvi
 resume.dvi: resume.tex
 	latex $^
 
+.PHONY: show
+show: $(OUTPUT)
+	okular $^ || evince $^
+
 .PHONY: clean
 clean:
 	rm -f *.dvi *.log *.pdf *~
