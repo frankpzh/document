@@ -11,20 +11,21 @@
 
 @article{intel-vt,
  author={Uhlig, R. and Neiger, G. and Rodgers, D. and Santoni, A.L. and Martins, F.C.M. and Anderson, A.V. and Bennett, S.M. and Kagi, A. and Leung, F.H. and Smith, L.},
- journal={Computer}, title={Intel virtualization technology},
+ journal={Computer},
+ title={Intel virtualization technology},
  year={2005},
- month={may},
+ month={May},
  volume={38},
  number={5},
- pages={ 48 - 56},
- keywords={ Intel virtualization technology; Itanium processor virtualization; guest operating systems; mainframe systems; virtual machine monitor; virtual platform interfaces; computer architecture; mainframes; operating systems (computers); performance evaluation; security of data; virtual machines;},
+ pages={48 - 56},
+ keywords={Intel virtualization technology; Itanium processor virtualization; guest operating systems; mainframe systems; virtual machine monitor; virtual platform interfaces; computer architecture; mainframes; operating systems (computers); performance evaluation; security of data; virtual machines;},
  doi={10.1109/MC.2005.163},
  ISSN={0018-9162},
 }
 
-@electronic{hyper-v,
+@misc{hyper-v,
  title = {Microsoft Hyper-V},
- url = {http://www.microsoft.com/hyper-v-server/},
+ note = {http://www.microsoft.com/hyper-v-server/},
 }
 
 @misc{xen,
@@ -32,14 +33,14 @@
  note = {http://www.xen.org/},
 }
 
-@electronic{kvm,
+@misc{kvm,
  title = {KVM},
- url = {http://www.linux-kvm.org/},
+ note = {http://www.linux-kvm.org/},
 }
 
-@electronic{vbox,
+@misc{vbox,
  title = {VirtualBox},
- url = {http://www.virtualbox.org/},
+ note = {http://www.virtualbox.org/},
 }
 
 @article{lguest,
@@ -72,7 +73,7 @@
 
 @inproceedings{xen3-art,
     author = {Pratt, Ian and Fraser, Keir and Hand, Steven and Limpach, Christian and Warfield, Andrew and Magenheimer, Dan and Nakajima, Jun and Mallick, Asit},
-    booktitle = {Proceedings of the 2005 Ottawa Linux Symposium},
+    booktitle = {Proceedings of the Ottawa Linux Symposium},
     citeulike-article-id = {1337298},
     keywords = {bibtex-import},
     month = jul,
@@ -197,7 +198,7 @@
 @article{kvm-paper,
  author="KIVITY  Avi",
  title="KVM : The Linux Virtual Machine Monitor",
- journal="Proceedings of the Linux Symposium, Ottawa, Ontario, 2007",
+ journal="Proceedings of the Ottawa Linux Symposium",
  ISSN="",
  publisher="",
  year="2007",
@@ -295,6 +296,11 @@
 @misc{vmware,
  title = {VMware},
  note = {www.vmware.com},
+}
+
+@misc{vmware-esx,
+ title = {VMware ESX},
+ note = {http://www.vmware.com/products/vsphere/esxi-and-esx/index.htm},
 }
 
 @article{mem-manage,
@@ -668,4 +674,86 @@ large scale, is unprecedented in the history of IT.}},
  title = {Live Migration with Pass-through Device for Linux VM},
  booktitle = {Ottawa Linux Symposium},
  year = {2008},
+}
+
+@article{proc-mig,
+    author = {Dejan S. Milojicic and Fred Douglis and Yves Paindaveine and Richard Wheeler and Songnian Zhou},
+    title = {Process migration},
+    journal = {ACM Computing Surveys},
+    year = {2000},
+    volume = {32},
+    pages = {2000},
+}
+
+@inproceedings{virt-better,
+ author = {Chen, Peter M. and Noble, Brian D.},
+ title = {When Virtual Is Better Than Real},
+ booktitle = {Proceedings of the Eighth Workshop on Hot Topics in Operating Systems},
+ year = {2001},
+ pages = {133--},
+ url = {http://dl.acm.org/citation.cfm?id=874075.876409},
+ acmid = {876409},
+ publisher = {IEEE Computer Society},
+ address = {Washington, DC, USA},
+} 
+
+@inproceedings{mig-no-virt,
+ author = {Kozuch, Michael A. and Kaminsky, Michael and Ryan, Michael P.},
+ title = {Migration without virtualization},
+ booktitle = {Proceedings of the 12th conference on Hot topics in operating systems},
+ series = {HotOS'09},
+ year = {2009},
+ location = {Monte Verit\&\#224;, Switzerland},
+ pages = {10--10},
+ numpages = {1},
+ url = {http://dl.acm.org/citation.cfm?id=1855568.1855578},
+ acmid = {1855578},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA},
+} 
+
+@misc{pvops,
+ title = {ParavirtOps},
+ note = {http://wiki.xen.org/xenwiki/XenParavirtOps},
+}
+
+@INPROCEEDINGS{vtpm,
+    author = {Stefan Berger and Ramón Cáceres and Kenneth A. Goldman and Ronald Perez and Reiner Sailer and Leendert Doorn},
+    title = {vTPM: Virtualizing the trusted platform module},
+    booktitle = {In USENIX Security},
+    year = {2006},
+    pages = {305--320}
+}
+
+@INPROCEEDINGS{ft-hpc,
+    author = {Arun Babu Nagarajan and Frank Mueller},
+    title = {Proactive Fault Tolerance for HPC with Xen Virtualization},
+    booktitle = {In Proceedings of the 21st Annual International Conference on Supercomputing (ICS’07},
+    year = {2007},
+    pages = {23--32},
+    publisher = {ACM Press}
+}
+
+@INPROCEEDINGS{remus,
+    author = {Brendan Cully and Geoffrey Lefebvre and Dutch Meyer and Mike Feeley and Norm Hutchinson and Andrew Warfield},
+    title = {Remus: High availability via asynchronous virtual machine replication},
+    booktitle = {In Proc. NSDI},
+    year = {2008}
+}
+
+@misc{pci-sig,
+ title = {PCI-SIG},
+ note = {http://www.pcisig.com/home/},
+}
+
+@INPROCEEDINGS{denali,
+    author = {Andrew Whitaker and Marianne Shaw and Steven D. Gribble},
+    title = {Denali: Lightweight Virtual Machines for Distributed and Networked Applications},
+    booktitle = {In Proceedings of the USENIX Annual Technical Conference},
+    year = {2002}
+}
+
+@misc{vmdq,
+ title = {Virtual Machine Device Queues},
+ note = {http://www.intel.com/content/www/us/en/network-adapters/gigabit-network-adapters/io-acceleration-technology-vmdq.html},
 }

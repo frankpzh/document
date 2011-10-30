@@ -15,7 +15,6 @@ set y2range [0:50]
 set y2tics autofreq
 
 set term postscript eps enhanced size 3in,2.25in
-set output "perf_spec_250.eps"
 
 plot "perf_spec_250.txt" using 1 ti "Good" lc 7 lt 1,\
 	"" using 2 ti "Tolerable" lc 7 lt 1,\

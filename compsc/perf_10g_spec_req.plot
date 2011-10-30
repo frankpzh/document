@@ -12,6 +12,6 @@ set ytics nomirror
 
 set term postscript eps enhanced size 3in,2.25in
 
-plot "perf_spec_req.txt" using 2 ti "VF orig reqs" lc 7 lt 1,\
-	"" using 5 ti "VF+comp reqs" lc 7 lt 1,\
-	"" using 8 ti "VF+comp+int reqs" lc 7 lt 1
+plot "perf_10g_spec_req.txt" using 2 ti "VF orig reqs" lc 7 lt 1,\
+	"" using 3 ti "VF+comp reqs" lc 7 lt 1,\
+	"" using 4 ti "VF+comp+int reqs" lc 7 lt 1

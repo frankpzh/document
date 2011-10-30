@@ -14,7 +14,6 @@ cpu(x)=x/1000000
 tp(x)=x/100000*8
 
 set term postscript eps enhanced size 6.5in,2.25in
-set output "timeline_pv.eps"
 
 set arrow 1 from 3,550 to 3.4,300
 set label 1 "Migration start" at 3,550 right

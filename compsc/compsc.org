@@ -24,282 +24,366 @@ In recent virtualization techniques, the performance of network I/O is
 critical. However, efforts to improve device performance by granting
 virtual machines direct access to hardware currently prevent live
 migration. None of the existing methods can solve this issue
-*gracefully*. This is because current hypervisor can hardly migrate
-the states of the device directly, and device drivers in virtual
-machine could not help the hypervisor to clone device states
-efficiently.
+perfectly. This is because current hypervisors can hardly migrate
+hardware states directly, and device drivers in virtual machine could
+not help the hypervisor to migrate hardware states efficiently.
 
-This paper introduces CompSC, a mechanism of state cloning to enable
-the live migration support with pass-through devices, and we applies
-it to an SR-IOV network card. CompSC classifies three kinds of states
-in pass-through devices, and clones them with corresponding
-techniques. Our experiments show that CompSC enabled the live
-migration with less than 2.88\% overhead on the pass-through network
-device. Besides, the service downtime during live migration is 35.7\%
-less than para-virtualized device.
+In this paper, we propose CompSC, a mechanism of hardware state
+migration to enable the live migration support of pass-through
+devices, and we apply it to SR-IOV network cards. We discuss the
+attributes of different hardware states in pass-through devices, and
+migrates them with corresponding techniques. Our experiments show that
+CompSC enabled the live migration with less than 2.88\% overhead on
+the pass-through network device. The service downtime during live
+migration is 35.7\% less than para-virtualized device.
 
 #+LATEX: \end{abstract}
 
 #+LATEX: \keywords
-Virtualization, Live migration, Pass-through device, State cloning
+Virtualization, Live migration, Pass-through device
 
 * Introduction
-  Virtualized systems have recently been widely used. In data centers
+  Virtualized systems have been widely used recently. In data centers
   and cloud computing environments, virtualization technology largely
   reduces the hardware and resource
-  costs\cite{berkeley-cloud,hpc-case}. In such an
-  environment, not only the performance of CPU and memory
+  costs\cite{berkeley-cloud,hpc-case}. Virtual machine live migration
+  technique \cite{lm} is considered as one of the most important
+  features of virtualization \cite{virt-better}. It not only
+  significantly increases the manageability of virtualized systems,
+  but also assists several important virtualization features such as
+  fault tolerance \cite{ft-hpc,remus} and trust computing \cite{vtpm}.
+
+  In such an environment, not only the performance of CPU and memory
   virtualization, but also performance of network I/O virtualization
-  are highly demanded.
-
-  The technique of virtual machine live migration\cite{lm}
-  significantly increases the manageability of virtualized
-  systems. When the total demand of CPU resources and I/O resources
-  decreases, the system manager can move the virtual machines to empty
-  and shut down some physical machines completely. When the CPU or I/O
-  demand on a physical machine increases, part of virtual machines on
-  it can be moved out to ensure the quality of services.
-
-  In recent researches on virtualization, CPU and memory
+  is highly demanded. In recent researches, CPU and memory
   virtualization have been discussed in depth\cite{compare-vt}, and
   the performance with recent techniques is near native
   one\cite{xen-art,mem-manage}. But I/O device virtualization is still
   a challenge, especially on network devices. Emulated network
   I/O\cite{vmware-io} provides a complete emulation of the existing
   network devices, and connects physical network device together with
-  a virtual bridge. Para-virtualized (PV) network I/O, which uses a
-  simplified device model, has benefited both safety\cite{safe-hw-xen}
-  and performance compared to emulated network I/O. Although recent
-  efforts\cite{opt-net,bridge-gap-sw-hw} largely improve the
-  performance of PV network I/O, it still has a performance gap with
-  native network I/O\cite{diag-perf-xen,opt-net,bridge-gap-sw-hw}
-  together with high CPU overhead. Using pass-through
-  I/O\cite{bypass-io,vtd}, A.K.A direct I/O, virtualized system can
-  directly access physical device without interceptions of the
-  hypervisor, thus it can provide a near native performance. Single
-  Root I/O Virtualization (SR-IOV)\cite{sriov} is a recent
-  specification raised by PCI-SIG. This specification shows how PCIe
-  device can share a single root I/O device with several virtual
-  machines. With its help, one hardware device can provide number of
-  PCIe interfaces to the hypervisor. By assigning these interfaces to
-  virtual machines as pass-through devices, the scalability of
-  pass-through I/O can be largely increased.
+  a virtual bridge. Para-virtualized (PV) network I/O \cite{pvops},
+  which uses a simplified device model, has benefited both
+  safety\cite{safe-hw-xen} and performance compared to emulated
+  network I/O. Although recent efforts\cite{opt-net,bridge-gap-sw-hw}
+  largely improve the performance of PV network I/O, it still has a
+  performance gap with native network
+  I/O\cite{diag-perf-xen,opt-net,bridge-gap-sw-hw} and higher CPU
+  overhead. Using pass-through I/O\cite{bypass-io,vtd}, A.K.A direct
+  I/O, virtualized system can directly access physical device without
+  interceptions of the hypervisor, thus it is capable of providing a
+  near native performance. Single Root I/O Virtualization
+  (SR-IOV)\cite{sriov} is a recent specification raised by
+  PCI-SIG. This specification shows how PCIe device can share a single
+  root I/O device with several virtual machines. With its help, one
+  hardware device is able to provide number of PCIe interfaces to the
+  hypervisor. By assigning these interfaces to virtual machines as
+  pass-through devices, the scalability of pass-through I/O can be
+  largely increased.
 
   Nevertheless, pass-through I/O has limitations on virtual machine
-  live migration. If using pass-through I/O, the physical device is
-  totally controlled by the virtual machine, and its internal state is
-  not available to the hypervisor. Several efforts have been made on
-  enabling pass-through network I/O
-  migration\cite{lm-direct-io,bonding,npia-intel}, but none of them
-  solves the problem perfectly.
+  live migration. In pass-through I/O cases, the physical device is
+  totally controlled by the virtual machine, and its internal states
+  are not accessible by the hypervisor. If the internal states of
+  physical device are not migrated during a live migration, the device
+  will not be working and the driver will likely be crashed. Several
+  efforts have been made on enabling pass-through network I/O
+  migration, such as bonding driver solution\cite{bonding} and
+  NPIA\cite{npia-intel}, but they all bypass the problem of hardware
+  state migration and have similar shortages.
 
-  In this paper, we introduce CompSC, a mechanism which can
-  efficiently clone the state of a hardware device, and enable
+  In this paper, we introduce CompSC, a mechanism that is able to
+  efficiently migrate the state of a hardware device, and enable live
   migration with pass-though network device. Unlike other researches,
-  which bypass the problem of state cloning and use para-virtualized
-  device or emulated device as backup, we focus specifically on the
-  real issues of the hardware state cloning. With an analysis on
-  different kinds of hardware states, CompSC applies methods of state
-  replay and self-emulation on pass-through devices. With a few code
-  changes on the device driver, CompSC achieves our object perfectly
-  with little impact on performance at runtime, and little time cost
-  for state cloning. Furthermore, compared with the other
-  solutions\cite{lm-direct-io,bonding,npia-intel}, CompSC maintains
-  the values of statistic registers across migrations.
+  which bypass the problem of hardware state migration by using
+  para-virtualized device or emulated device as backup, we directly
+  face the challenge of the hardware state migration. With an analysis
+  on different kinds of hardware states, CompSC applies methods of
+  state replay and self-emulation on pass-through devices. With a few
+  code changes on the device driver, CompSC achieves our object
+  perfectly with little impact on performance at run time, and little
+  time cost for hardware state migration. Furthermore, compared to the
+  other solutions\cite{lm-direct-io,bonding,npia-intel}, CompSC
+  maintains the values of statistic registers across live migrations.
 
   We have implemented CompSC on Xen\cite{xen} platform, with Intel
   82576 SR-IOV\cite{sriov,sriov-xen} network card\cite{kawela}. In the
   evaluation section, we measure the performance impact of our method
-  using micro benchmarks, scp, netperf\cite{netperf} and
-  SPECweb2009\cite{specweb}. The result shows that the performance
-  degradation of our method is within 2.88%. Without the
-  self-emulation layer in the hypervisor, the overhead is as small as
-  0.75%. We also measure the service downtime during migration with a
-  para-virtualized network device, Intel 82576 with our implementation,
-  and Intel 82576 with the solution of bonding driver. Our solution
-  has a 35.7% shorter downtime than the para-virtualized network
-  device. Finally, with a line count on code changes in our
-  implementation, our solution is easy to be deployed and can be
-  widely used *?*.
+  using micro benchmarks, scp, Netperf\cite{netperf} and
+  SPECweb2009\cite{specweb}. The result shows that our method degrades
+  the performance within 2.88%. Without the self-emulation layer in
+  the hypervisor, the overhead is as small as 0.75%. We also measure
+  the service downtime during live migration with a para-virtualized
+  network device, Intel 82576 with our implementation, and Intel 82576
+  with the solution of bonding driver. Our solution has a 35.7%
+  shorter downtime than the para-virtualized network device. Finally,
+  with a line count on code changes in our implementation, we convince
+  that our solution can be deployed easily.
 
-  The remainder of this paper is structured as follows: Section 2
-  introduces the related work. Section 3 discusses the hardware
-  states, classifies them into three kinds, and explains how did we
-  clone each kind of them. Section 4 describes the design of CompSC
-  and the structure of the system. Section 5 describes how we
+  The remainder of this paper is structured as follows: Section
+  \ref{sec-2} introduces the related work. Section \ref{sec-3}
+  discusses the methods of migrating hardware states with different
+  attributes. Section \ref{sec-4} describes the design of CompSC and
+  the structure of the system. Section \ref{sec-5} describes how we
   implement CompSC on Xen platform with Intel 82576 network
-  card. Section 6 shows the results of our experiments and Section 7
-  is the conclusion.
+  card. Section \ref{sec-6} shows experiment results and we conclude
+  in Section \ref{sec-7}.
 
 * Related work
-  There have been several efforts on this topic. In the study by Edwin
-  et al.\cite{bonding}, Linux Ethernet Bonding Driver\cite{bond-drv}
-  is used. Not only the pass-through network device, a
-  para-virtualized network device is also used as a backup. Before the
-  start of a migration, the pass-through device was hot unplugged
-  using an ACPI event. In this way, there is no need to worry about
-  migrating the pass-through device. This method does not require code
-  change on the guest kernel, but it only works with Linux
-  guest. Furthermore, it requires an additional para-virtualized
-  network device. The physical device of the additional device must be
-  connected to the same switcher with pass-through device. This may
-  lead to additional hardware cost and resources cost. In addition,
-  the hot plug of the pass-through device after the migration clears
-  every statistic registers in the device. Thus the function of
-  statistic becomes inaccurate or disabled. In a similar work by Asim
-  and Michael\cite{lm-direct-io}, a shadow driver is implemented to
-  redirect network requests to a backup device during the
-  migration. It can be applied to any operating systems, but it
-  requires as large as 11K LOC (line of code) change on both the
-  hypervisor and the guest kernel.
+** Migration
+   In the early years, process migration \cite{proc-mig} was a hot
+   topic in the distributed systems. Process migration has many
+   advantages, including processing power management, resource
+   locality and fault resilience. However, process migration has
+   disadvantages on implementation complexity and inflexibility. With
+   the technology of virtualization, live migration \cite{lm} of the
+   whole operating system (OS) is possible today and becomes a typical
+   solution. In the study of Chen et al. \cite{virt-better}, migration
+   is considered as one of the most important features of
+   virtualization. There are also studies which benefit from live
+   migration of virtual machine and provide fault tolerance
+   \cite{ft-hpc,remus} and trusted computing \cite{vtpm} features.
 
-  Network Plug-In Architecture (NPIA/NPA)\cite{npia-intel,npa} is an
-  architecture raised by VMware and Intel. Instead of supporting all
-  pass-through network devices, NPIA only focuses on
-  SR-IOV\cite{sriov} network devices. NPIA designs a shell-plugin pair
-  inside the kernel of the virtual machine. The shell provides a layer
-  similar to hardware abstract layer, while the plugin implements the
-  hardware communication under the shell. The plugin can be plugged or
-  unplugged during runtime. To reduce the downtime during plugin
-  switch, an emulated network interface is used as a backup. By
-  unpluging the plugin, NPA can easily support live migration. Just
-  like the solution of bonding driver, NPIA uses an emulated interface
-  as a backup. Compared with the bonding driver solution, NPIA may
-  need less time on switching the pass-through device to the
-  backup. NPIA also needs to completely rewrite the network
-  drivers. This limitation might prevent NPA from being widely
-  employed.
+   Live migration of virtual machines takes the advantage of the
+   narrow and identical interface provided by the hypervisor. In the
+   study of Christopher et al. \cite{lm}, the process of live
+   migration is divided into six stages:
+   1. Pre-Migration stage
+   2. Reservation stage
+   3. Iterative Pre-copy stage
+   4. Stop-and-copy stage
+   5. Commitment stage
+   6. Activation stage
+   Before the stop-and-copy stage, the virtual machine is running on
+   the source host normally. After activation stage, the virtual
+   machine runs on the destination host. The downtime (the time when
+   virtual machine is out of service) of the process consists of
+   stop-and-copy stage and commitment stage. It is one of the most
+   important measurements of live migration.
 
-* Discussion on hardware states
-  In micro view of a hardware, all internal states are registers.
-  Every flip-flop is considered as one bit inside the hardware. If we
-  can copy the state of every flip-flop in one hardware into another,
-  we can easily do the migration with this hardware. Unfortunately, in
-  most cases, copying every flip-flop is impossible.
+   Also, there have been efforts on migration the whole OS without
+   virtualization. In the study of Michael et al. \cite{mig-no-virt},
+   the issues and solutions for migration by OS are discussed. Since
+   OS can be treated as the driver of whole machine, some of their
+   issues are similar to ours.
 
-  Hardware specification describes every detail about the interface
-  between the device and the driver, together with the communication
-  method and the hardware behavior. If we know the past communications
-  on the interface, we also know which state the hardware is in. In
-  most cases, we can drive the destination hardware from uninitialized
-  into the same state by replaying the past communications. Section
-  3.1 describes the details of cloning hardware states with state
-  replay method. Focusing on the interface itself, hardware typically
-  provides I/O registers to software. Some of them are read-write,
-  others of them are read-only, and the rest may have uncommon
-  attributes such as read-clear. All states represented by read-write
-  register can be copied, however, other registers are not
-  replicable. Section 3.2 presents an analysis of states exposed by
-  read-write registers.
+** Para-virtualized network I/O
+   The PV network device in Xen \cite{pvops} uses the idea of
+   para-virtualization \cite{denali}, and provides an interface
+   between the hypervisor and the virtual machine guest. The
+   hypervisor side of the code piece is called back-end driver, and
+   the code piece inside virtual machine guest kernel is called
+   front-end driver. In modern implementation of Xen, the interface
+   takes advantages of shared memory between Xen domains, and provides
+   much higher performance than an emulated network device.
 
-  Also, a set of hardware states cannot be simply cloned even using
-  the knowledge of the devices. In states of network devices,
-  statistic registers that are exposed read-only or read-clear are in
-  this set. These registers can only be altered by real events such as
-  receiving a packet. In Section 3.3, we present the ideas of cloning
-  this kind of state.
+** SR-IOV
+   SR-IOV \cite{sriov} is a new specification defined by PCI-SIG
+   \cite{pci-sig}. The purpose of SR-IOV is providing multiple PCI
+   interfaces of one device, in order to fit the usage model of
+   direct-assigned/pass-through device and provide higher
+   performance. An SR-IOV device consists of one PF (physical
+   function) and several VFs (virtual functions). The typical usage of
+   an SR-IOV network device on virtual machine is taking VFs as
+   pass-through devices of virtual machines, and PF as a device of
+   device domain or privileged domain, not only for networking, but
+   also for VF management. On PCI bus, a VF looks identical to an
+   independent PCI device. Also, in virtual machines, pass-through VFs
+   are equivalent to typical PCI network devices.
+
+   In the background of cloud computing, SR-IOV has been used in
+   several network devices. In this paper, we use Intel 82576 network
+   card and Intel 82599 network card in our experiments, which all
+   support SR-IOV.
+
+** Similar works and technologies
+   There are several efforts on the topic of live migration with
+   pass-through devices. In the study by Edwin et al.\cite{bonding},
+   Linux Ethernet Bonding Driver\cite{bond-drv} is used. Not only the
+   pass-through network device, but also a para-virtualized network
+   device is used as a backup. Before the start of a live migration,
+   the pass-through device was hot unplugged using an ACPI event. In
+   this way, there is no need to worry about migrating the
+   pass-through device. This method does not require code change on
+   the virtual machine guest kernel, but it has several disadvantages:
+   1. It only works with Linux guest. 
+   2. It requires an additional para-virtualized network device. The
+      physical device of the additional device must be connected to
+      the same Ethernet switch with the pass-through device. This
+      may lead to additional hardware cost and resources cost.
+   3. The hot unplug event introduces another service downtime in our
+      test. (Section \ref{sec-6-5})
+   4. After the live migration, the driver clears every statistic
+      registers in the pass-through device. Therefore, statistic
+      function becomes inaccurate or disabled.
+   In a similar work by Asim and Michael\cite{lm-direct-io}, a shadow
+   driver is implemented to redirect network requests to a backup
+   device during live migrations. Besides the flaws mentioned above,
+   it requires as large as 11K LOC (line of code) change on both the
+   hypervisor and the guest kernel.
+
+   VMDq (Virtual Machine Device Queues) \cite{vmdq} is a technique
+   proposed by Intel. The idea of VMDq is similar to SR-IOV, since
+   they all assign hardware resources to the virtual
+   machine. Differently, VMDq also benefits from the PV network
+   device. Unlike SR-IOV, which exposes a complete device interface to
+   the virtual machine guest, VMDq only provides network queues to the
+   virtual machine guest. With para-virtualization techniques like
+   shared pages, VMDq avoids packet copying between the virtualized
+   network queue and the physical network queue. VMDq provides higher
+   performance than para-virtualized network device, and is able to
+   support live migration similar to a para-virtualized one. In this
+   paper, we also elaborate the comparison of the performance and
+   downtime between VMDq and our solution in Section \ref{sec-6-5}.
+
+   Network Plug-In Architecture (NPIA/NPA) \cite{npia-intel,npa} is an
+   architecture raised by VMware and Intel. It tries to solve the
+   issues of pass-through device management and live
+   migration. Instead of supporting all pass-through network devices,
+   NPIA only focuses on SR-IOV\cite{sriov} network devices. NPIA
+   designs a shell/plug-in pair inside the kernel of the virtual
+   machine. The shell provides a layer similar to hardware abstract
+   layer, while the plug-in implements the hardware communication
+   under the shell. The plug-in can be plugged or unplugged during run
+   time. To reduce the downtime during plug-in switch, an emulated
+   network interface is used as a backup. By unplugging the plug-in,
+   NPA can easily support live migration. Just like the solution of
+   bonding driver, NPIA uses a software interface as backup
+   device. Compared to the bonding driver solution, NPIA may need less
+   time on switching the pass-through device to the backup. NPIA also
+   needs to completely rewrite the network drivers. This limitation
+   might prevent NPA from being widely employed.
+
+* Hardware states migration
+  The core problem of live migration support of pass-through devices
+  is the migration of hardware states. Pass-through devices are
+  totally assigned to virtual machines; hence the hypervisor is unable
+  to access the pass-through devices. In this section, we show the
+  methods of solving this problem.
+
+** I/O registers migration
+   I/O registers are the main interface between hardware and
+   software. Almost every visible state of a hardware device is
+   exposed by kinds of I/O registers. In modern PCI architecture, two
+   kinds of I/O registers are used: Port I/O(PIO) and Memory-mapped
+   I/O(MMIO). Reading/writing operations of PIO and MMIO are atomic,
+   and the virtual machine will not be suspended during an I/O reading
+   or I/O writing.
+
+   According to the accessing attribute, I/O registers are classified
+   into different kinds. One of the most common kinds is read-write
+   registers. If accesses to a read-write register do not lead to side
+   effects, this register can be simply migrated by the
+   hypervisor. For other kinds of registers such as read-only
+   registers and read-clear registers, they cannot be simply migrated
+   by the hypervisor.
+
+   Accessing some registers may result in side effects. For example,
+   modifying TDT(Transmit descriptor tail) register in a network card
+   will trigger packet transmitting. Without the full knowledge of
+   these registers, accessing them by the hypervisor may cause
+   unexpected behavior or device failure.
 
 ** State replay
-   Most of states in a hardware device can be migrated with
-   information of past communications. Apparently, the driver must
-   know past communications on the hardware-software interface as well
-   as the hardware specification. So, the driver is the best one to
-   commit the replay of communications and drive the destination
-   hardware into the state of source hardware.
+   Hardware specification describes every detail about the interface
+   between the device and the driver, together with the communication
+   method and the hardware behavior. If we know the past
+   communications on the interface, we also know which state the
+   hardware is in. Apparently the driver knows past communications on
+   the hardware-software interface as well as the hardware
+   specification, and in most cases the driver is able to drive the
+   destination hardware from an uninitialized state into the same
+   state as the source hardware by replaying the past communications.
 
-   With state replay, the complexity of the driver may be a problem.
-   As recording every past communications needs great efforts, driving
-   the destination device may also need large amount of code. But,
-   with the knowledge of devices, large amount of communications can
-   be optimized. For example, the device driver may write a register
-   of a setting many times. We do not need to record them
+   The idea of state replay consists of two parts: the recording part
+   and the replaying part. In the recording part, driver must record
+   every operation that commits to the hardware on the source machine;
+   and in the replaying part, driver reads the past operation list and
+   commits them on the destination machine one by one.
+
+   With the idea of state replay, driver complexity may be a
+   problem. Since recording every past communications needs great
+   efforts, driving the destination device may also need a large
+   amount of code. Fortunately, with the knowledge of devices, many
+   communications can be optimized. For example, the device driver may
+   write a register many times. If the writing operation of the
+   register brings no side effect, we do not need to record them
    all. Instead, we record the last one, because only the last one is
-   valid.
+   valid in the hardware.
 
-   Another efficient optimization is defining transaction. Some
-   driver's work may consist of several device operations. Instead of
-   recording every step in the driver's work, the device operations
-   are packed into transactions. We assume that a migration could only
-   happen within states outside the transactions. Figure
+   Another efficient optimization is defining operation
+   sets(opset). Some driver's work may consist of several device
+   operations. Instead of recording every step of the driver's work,
+   the device operations are packed into operation sets. Figure
    \ref{fig:pack_state} illustrates this optimization. In the figure,
    4 operations =op1=, =op2=, =op3= and =op4= are packed into one
-   transaction =tran1=. With the assumption that a migration won't
-   happen inside transactions, three states are safely omitted: =A=,
+   opset =opset1=. With the assumption that a live migration will not
+   happen inside operation sets, three states are safely omitted: =A=,
    =B= and =C=.
 
-#+CAPTION: Packing device operations into a transaction
+#+CAPTION: Packing device operations into an operation set
 #+LABEL: fig:pack_state
 #+ATTR_Latex: width=1.73in
 [[./pack_state.eps]]
 
    This optimization works dramatically well on the network
-   devices. With well-designed transactions, the state set of network
-   devices can be largely reduced. In the case of virtual function of
-   Intel 82576 network card, which is used in our evaluation, all
-   initializing operations and sending/receiving operations are packed
-   into transactions. The remaining states are only (uninitialized,
-   up, down) together with a bunch of setting registers. In such a
-   situation, only the latest operation on each setting registers and
-   whether the interface is up are needed to be tracked. Also, the
-   code for driving the destination hardware into the state of source
-   hardware is simplfied significantly by invoking existing
-   initializing codes.
+   devices. With well-designed operation sets, the number of internal
+   states of the network devices can be largely reduced. In the case
+   of virtual function of Intel 82576 network card, which is used in
+   our evaluation, all initializing operations and sending/receiving
+   operations are packed into operation sets. The remaining states are
+   only {uninitialized, up, down} together with a collection of
+   setting registers. In such a situation, only latest operations on
+   each setting registers and the fact whether the interface is up are
+   needed to be tracked. Also, the code for driving the destination
+   hardware into the state of source hardware is simplified
+   significantly by invoking existing initializing codes. In Section
+   \ref{sec-6-6}, we list the size of hardware states and past
+   operations to be migrated in Intel 82576 network card and Intel
+   82599 card.
 
-   Avoiding migration happening inside a transaction needs a
+   Avoiding live migration happening inside an operation set needs a
    synchronizing method between the device driver and the
    hypervisor. A common question is: does this affect the performance?
-   This depends on the granularity of transactions. If the driver
-   makes a transaction which can last for two minutes, we can imagine
-   the migration may take a long time. Also, if the driver makes a
-   transaction which can be invoked millions of times per second, it
-   will be a problem. With a set of well-defined transactions, the
-   decrease on performance can be minimized. In Section 6.3, we prove
-   that the performance deterioration was small enough.
-
-** I/O registers cloning
-   I/O registers are the main interface between hardware and software
-   since the born of computer *?*. Almost every visible state of a
-   hardware is exposed by kinds of I/O registers. In modern PCI
-   architecture, three kinds of I/O registers are used: Port I/O(PIO),
-   Memory-mapped I/O(MMIO), and PCI configuration
-   space. Reading/writing PIO and MMIO are atomic, or stateless. In
-   other words, the hypervisor can stop the virtual machine at anytime
-   and commit PIO/MMIO reading/writing on a pass-through device
-   without any difficulties. Operations on PCI configuration consist
-   of several PIO operations. However, PCI configuration space of
-   virtual machine is totally emulated by the hypervisor. Cloning it
-   is never a problem.
+   The answer is, it depends on the granularity of operation sets. If
+   the driver makes an operation set that may last for two minutes, we
+   can imagine that the live migration may take a long time. Also, if
+   the driver makes an operation set that can be invoked millions of
+   times per second, it will be a problem. With a set of well-defined
+   operation sets, the decrease on performance can be minimized. In
+   Section \ref{sec-6-4}, we prove that the performance deterioration
+   in our implementation is small enough.
 
 ** Self-emulation
    Statistic registers exposed with attributes of read-only and
-   read-clear commonly cannot be cloned through the software/hardware
-   interface. The count of dropped packets in network card is an
-   example. The only way to alter the count is trying to drop a
-   packet. It is difficult, for it needs cooperation with the one on
-   the other side of the network wire. All the existing
-   solutions\cite{lm-direct-io,bonding,npia-intel} do not cover this
-   register. They all do the device initialization after the
+   read-clear commonly cannot be migrated through the
+   software/hardware interface. The count of dropped packets in
+   network card is an example. The only way to alter the count is to
+   try to drop a packet. It is difficult, since it needs to cooperate
+   with the external network. All the existing solutions
+   \cite{lm-direct-io,bonding,npia-intel} do not cover this
+   register. They all do the device initialization after the live
    migration, reset all statistic registers, and make the functions of
    statistic inaccurate or disabled.
 
    Statistic registers often have mathematical attributes. A common
-   one is monotonicity. After a migration, one statistic register may
-   have an incorrect value. The difference between its value and the
-   right value should be a constant. For example, let's assume the
-   count of dropped packets is 5 before the migration. After the
-   migration, the same register on destination hardware is initialized
-   to 0. After that, the value of register is always smaller than the
-   right value by 5. If the value on the destination hardware is 2,
-   the right value should be 7. Two packets dropped on destination
-   machine and seven dropped on the source machine. In the case of
-   read-clear register, the relationship is similar. The difference is
-   that only the first access to a read-clear register after a
-   migration may get the incorrect value.
+   one is monotonicity. After a live migration, one statistic register
+   may have an incorrect value. The difference between its value and
+   the correct value should be a constant. For example, let's assume the
+   count of dropped packets is 5 before the live migration. After the
+   live migration, the same register on destination hardware is
+   initialized to 0. After that, the value of register is always
+   smaller than the correct value by 5. If the value on the destination
+   hardware is 2, the correct value should be 7. Two packets dropped on
+   destination machine and seven dropped on the source machine. In the
+   case of read-clear register, the relationship is similar. The
+   difference is that only the first access to a read-clear register
+   after a live migration may get the incorrect value.
 
    With such a clear logic, the classic trap-and-emulation is
    chosen. In the method of self-emulation, every access to a
    read-only or read-clear statistic register is intercepted by a
-   self-emulation layer. In the layer, the right value is calculated
+   self-emulation layer. In the layer, the correct value is calculated
    and returned to the caller. The self-emulation layer can be put in
    any component on the access path of the register (e.g. the driver,
    the hypervisor). Figure \ref{fig:selfemu} represents an example
@@ -310,165 +394,161 @@ Virtualization, Live migration, Pass-through device, State cloning
 #+ATTR_Latex: width=2.8in
 [[./selfemu.eps]]
 
-** Choices and combination
-   I/O register cloning is easy to perform, but it only works on
-   states exposed by read-write registers. State replay covers almost
-   every state, but it needs code changes in the driver. Statistic
-   registers that are hard to clone are covered by
-   self-emulation. One practical way is mixing them into a
-   combination: using I/O register cloning if possible, otherwise,
-   using state replay and self-emulation.
+** Summary
+   I/O register migration is easy to perform, but the hardware states
+   which can use it are quite limited. State replay covers almost
+   every hardware state, but it needs extra code efforts in the
+   driver. Statistic registers are hard to migrate, but can be covered
+   by self-emulation. One practical way is mixing them into a
+   combination: using state replay for most hardware states, and using
+   I/O register migration and self-emulation when possible.
 
-   In our case, we classifies the states of Intel 82576 virtual
-   function as follows: Configurations of rings such as RDBA (Receive
+   In our case, we classify the states of Intel 82576 virtual function
+   as follows: configurations of rings such as RDBA (Receive
    Descriptor Base Address), TXDCTL (Transmit Descriptor Control) are
-   cloned using I/O register cloning. Interrupt related registers and
-   settings inside Advanced Context Descriptor are cloned using state
-   replay. All statistic registers are cloned using self-emulation.
-   With these methods, the migration of network cards in our
-   experiment runs smoothly.
+   migrated by I/O register migration. Interrupt related registers and
+   settings inside Advanced Context Descriptor are migrated using
+   state replay. All statistic registers are covered by
+   self-emulation. With these methods, the live migration of network
+   devices in our experiment runs smoothly.
 
 * Design of CompSC
-  Among the five stages of live migration\cite{lm}, CompSC works
-  inside stop-and-copy stage and activation stage. Basically, CompSC
-  saves states of the network device at stop-and-copy stage, and
-  restores them at activation stage. The architecture of CompSC is
-  presented in Figure \ref{fig:arch}.
-
 #+CAPTION: CompSC architecture
 #+LABEL: fig:arch
 #+ATTR_Latex: width=3in
 [[./arch.eps]]
 
-  CompSC uses three methods to clone the device states. Before the
-  migration, the driver and the hypervisor collects data using these
-  methods. After the migration, the restoration of the device states
-  is totally completed by the driver using collected data.
+  The architecture of CompSC is presented in Figure
+  \ref{fig:arch}. The driver in the virtual machine is responsible for
+  the state replay, and the hypervisor covers the I/O register
+  migration. A piece of shared memory between the hypervisor and the
+  virtual machine is used for synchronization. Two self-emulation
+  layers are provided in the driver and in the hypervisor.
 
-  Making the least code changes is one of CompSC's principles.
-  Para-virtualized network device needs two chunks of codes working
-  together to achieve the migration: One is the front-end driver, and
-  the other is the back-end driver (*define in more detail*). Emulated
-  network device\cite{vmware-io} has another pair, which consists of
-  the emulator and the device driver. To avoid making up hundreds of
-  "back-end" chunks of codes, in our solution, the hypervisor and
-  virtual machine management tools do not have any device-specific
-  knowledge. Everything related to the knowledge of devices is
-  embedded in the network driver in the virtual machine.
+  Among the six stages of live migration\cite{lm}, CompSC works inside
+  stop-and-copy stage and activation stage. The usage of CompSC is
+  intelligible: collecting the hardware states of the pass-through
+  device at stop-and-copy stage, and restoring them on the destination
+  hardware at activation stage. In addition, the collecting is
+  completed by different components (e.g. the hypervisor, the device
+  driver, self-emulation layer), but the restoration is finished by
+  the device driver only.
 
 ** Synchronization
-   As far as the device driver is concerned, device migration happens
-   in a flash. After a context switch, the hardware turns into
-   uninitialized state. If anything indicates the migration, it must
-   be checked before any hardware access. If we define a set of
-   transactions, they would never expect the disturbance of the
-   migration.
+   In the device driver's view, live migration happens in a
+   flash. After one context switch, the hardware suddenly turns into
+   an uninitialized state. If there is anything can indicate a live
+   migration, it must be checked before every hardware access. If we
+   use state replay method, and define several operation sets, the
+   driver will never expect the disturbance of a live migration.
 
    CompSC creates a shared memory area between the hypervisor and the
-   virtual machine. An rwlock and a version counter are presented on
-   the memory area. The rwlock indicates the status of migration. When
+   virtual machine. An rwlock and a version counter are presented in
+   the memory area. The rwlock indicates the status of migration, and
+   the counter records the number of live migrations happened. When
    the stop-and-copy stage starts, the hypervisor tries to hold the
-   write lock. In the activation stage, hypervisor adds the version
-   counter and releases the write lock. On the other side, the driver
-   acquires the read lock before every hardware access. One the lock
-   is held, the driver checks the version counter to figure out
-   whether a migration has just happened. If so, the restoration of
-   device driver will be invoked. In this way, the hardware will never
-   be accessed in an uninitialized state.
+   write lock. In the activation stage, the hypervisor adds the
+   version counter and releases the write lock. On the other side, the
+   driver acquires the read lock before every hardware access. Once
+   the lock is held, the driver checks the version counter to figure
+   out whether a live migration is just happened. If so, the
+   restoration of device driver will be invoked. In this way, the
+   hardware will never be accessed in an uninitialized state.
 
    The logical meaning of the rwlock is the indicator of the one who
-   took over the hardware device. The device driver locks the read
-   lock whenever it wanted to access the hardware. After the accessing
-   is finished and the device state can be taken over by the
-   hypervisor for migration, the driver unlocks the read lock. The
-   hypervisor acquires the write lock before it touches the
-   device. When the write lock is held by the hypervisor, the hardware
-   device is taken over by the hypervisor.
+   take over the hardware device. The device driver locks the read
+   lock whenever it wants to access the hardware. After the accessing
+   is finished and the device state is taken over by the hypervisor
+   for live migration, the driver unlocks the read lock. The
+   hypervisor acquires the write lock before it touches the hardware
+   device, and after that the hardware device is taken over by the
+   hypervisor.
 
-** I/O registers cloning
-   CompSC performs the I/O register cloning easily. The hypervisor
-   scans a list of registers of the network device, and saves them
-   into the shared memory area. After the migration, the driver inside
-   the virtual machine is responsible for restoration. To avoid having
-   any device-specific knowledge, the hypervisor does not know the
-   list of registers. It gets the list from the shared memory area,
-   where the driver puts the list during boot process.
+   We expect that the cost of rwlock is relatively low. In the common
+   case, the lock won't be contended as all the operations in the
+   driver are read lock. The only cost during run time is the memory
+   accessing and a little bit of cache pollution. In Section
+   \ref{sec-6-4}, we provide our evaluation on the cost of the rwlock.
+
+** I/O registers migration
+   CompSC performs the I/O register migration in a straightforward
+   way. The hypervisor scans a list of registers of the network
+   device, and saves them into the shared memory area. After a live
+   migration, the driver inside the virtual machine is responsible for
+   restoration. Making the least code changes is one of CompSC's
+   ideas. In the design of CompSC, we try to prevent the hypervisor
+   from having any device-specific knowledge. At here, the hypervisor
+   does not know the list of registers. It gets the list from the
+   shared memory area, where the driver puts the list during boot
+   process.
 
 ** State replay
-   The state replay is completed in the device driver. The
-   transactions and hardware operations are protected by rwlock. Every
-   time before the driver releases the read lock, it stores enough
-   information of the operation or transaction just finished for the
-   migration. In the restoration procedure, the device drives the
+   The state replay is completed by the device driver. The operation
+   sets and hardware operations are protected by rwlock. Every time
+   before the driver releases the read lock, it stores enough
+   information of past operations or operation sets for
+   restoration. In the restoration procedure, the device drives the
    destination hardware into the same state using the saved
    information.
 
 ** Self-emulation layer
    Self-emulation layer can be put into the hypervisor or the device
    driver. A self-emulation layer in the hypervisor will trap every
-   access to the emulated registers, and return the right value. A
+   access to the emulated registers, and return the correct value. A
    self-emulation layer in the driver will process the fetched value
-   right after the access. The former needs less code changes in the
+   correct after the access. The former needs less code changes in the
    driver. All it needs is the list of emulated registers, but it
    leads to performance impact due to I/O interception. The latter
-   gains less overhead, but much more code changes. CompSC provides
-   them both, and the driver is free to choose anyone. For the
-   overhead of I/O interception, the detail will be decscribed Section
-   6.1.
+   gains less overhead, but produces much more code changes. CompSC
+   provides them both, and the driver is free to choose either. For
+   the overhead of I/O interception, the detail will be described
+   Section \ref{sec-6-2}.
 
 ** SR-IOV network card
-   It will be different when using SR-IOV network device. An SR-IOV
-   network device consists of one PF (physical function) and several
-   VFs (virtual functions). The typical usage of an SR-IOV network
-   device on virtual machine is taking VFs as pass-through devices of
-   virtual machines, and taking PF as a device of device domain or
-   privileged domain, not only for networking, but also for VF
-   management. On PCI bus, a VF looks identical to an independent PCI
-   device. Also, in a virtual machine, pass-through VF is just like a
-   typical PCI network card.
-
-   VFs are managed by the PF, thus states of VFs can also be affected
-   by the PF. Furthermore, some of the states can only be accessed
-   through PF registers by the PF driver. When a migration happens,
-   VF-in-PF states (the VF part of PF states) should also be saved and
-   restored. CompSC uses the state replay method directly on the PF
-   driver. The PF will record all states about the specified VF before
-   the migration, and redo them on the destination machine later.
+   On SR-IOV network device, migration becomes slightly different. The
+   PF in an SR-IOV network device provides management interfaces of
+   the VFs. In our environment (Intel 82576 and Intel 82599), PF holds
+   a subset of VF states like MAC address. In this paper, we call them
+   VF-in-PF states (the VF part of PF states). Some of VF-in-PF states
+   can be accessed by the VF driver through the PF-VF mailbox
+   \cite{kawela} and can be migrated using state replay, but the
+   remaining can only be accessed through PF registers by the PF
+   driver. In order to cover all hardware states, CompSC also uses the
+   state replay method on the PF driver. The PF driver records all
+   hardware operations of the specified VF before the migration, and
+   commits them on the destination machine later.
 
 * Implementation
   We used Xen\cite{xen} as the base of our implementation. For
   architecture, we used 64-bit x86. For network card, we used Intel
-  82576, an SR-IOV 1Gbps network card. The PF driver and the VF driver
-  of Intel 82576 were changed in our implementation. Section 5.1
-  describes the detail of driver changes, and Section 5.3 presents the
-  self-emulation layer.
+  82576, an SR-IOV 1Gbps network card, and Intel 82599, an SR-IOV
+  10Gbps network card. The PF drivers and the VF drivers of Intel
+  82576 and Intel 82599 were changed in our implementation. Section
+  \ref{sec-5-1} describes the detail of driver changes, and Section
+  \ref{sec-5-3} presents the self-emulation layer.
 
   Xen provides functions in the hypervisor to access foreign guest
   domain's memory page. Using these functions, shared pages between
   the hypervisor and the device driver can be well
-  implemented. Section 5.2 describes the details.
-
-  The process of live migration highly depends on dirty page
-  tracking. Dirty page tracking is implementated with the help of page
-  tables in the newest version of Xen. However, memory access by DMA
-  could not be tracked by page tables. Intel VT-d technology\cite{vtd}
-  provides I/O page tables, but it still cannot be used to track dirty
-  pages. Section 5.4 discusses our solution to dirty page tracking.
+  implemented. Section \ref{sec-5-2} describes the details.
 
 ** Driver changes
-   Like the description in Section 4.1, the read lock of the rwlock is
-   used to protect the hardware operations and the transactions we
-   defined. Right after the lock is acquired, the driver checks the
-   migration counter. The driver invokes restoration procedure if a
-   migration just happend.
+   In our experiment, CompSC is applied to Intel 82576 network card
+   and Intel 82599 network card. The corresponding VF drivers are
+   IGBVF and IXGBEVF. As we have mentioned in Section \ref{sec-4-1},
+   the read lock of the rwlock is used to protect the hardware
+   operations and the operation sets we defined. Right after the lock
+   is acquired, the driver checks the migration counter. The driver
+   invokes restoration procedure if a migration is just happened.
 
-   To be specific, we packs the =igbvf_up= and =igbvf_down= as
-   transactions. All the hardware operations and transactions are
+   To be specific, we pack =igbvf_up= and =igbvf_down= in the igbvf
+   driver, and =ixgbe_up= and =ixgbevf_down= in the ixgbevf driver as
+   operation sets. All the hardware operations and operation sets are
    protected by the read lock. Most of device states have a copy in
-   the driver, the state replay needs little code changes. The
-   restoration procedure conducts the following tasks: initializing
-   the device, writing all saved registers, and restoring all states
-   using state replay.
+   the driver; therefore the state replay needs little code
+   changes. The restoration procedure conducts the following tasks:
+   initializing the device, writing all saved registers, and restoring
+   all states using state replay.
 
 ** Shared page and synchronization
    Shared pages are allocated by the network device driver. The driver
@@ -486,11 +566,11 @@ Virtualization, Live migration, Pass-through device, State cloning
    number can be sent by a high level communication on TCP/IP
    protocol.
 
-   When a live migration starts, it keeps transfering memory pages
+   When a live migration starts, it keeps transferring memory pages
    until the stop-and-copy stage\cite{lm}, and then tries to suspend
    the virtual machine. Right before the suspending, the write lock of
    the rwlock is acquired by the hypervisor. In this way, the
-   hypervisor takes over the control of the device hardware. After the
+   hypervisor seizes the control of the device hardware. After the
    virtual machine is suspended, the hypervisor accesses the shared
    pages, and saves all registers listed in the shared pages. The
    remaining part of live migration happens on the backup
@@ -502,46 +582,59 @@ Virtualization, Live migration, Pass-through device, State cloning
    restoration procedure is invoked. The driver does necessary
    initializations on the device and restores the state using
    information collected by state replay and I/O register
-   cloning. After that, the device migration is accomplished
+   migration. After that, the device migration is accomplished
    perfectly.
 
 ** Self-emulation layer
-   Xen hypervisor provides functions for trapping memory accesses. The
-   self-emulation layer in the hypervisor is based on them. Every time
-   the layer receives a request to commit self-emulation on a list of
-   registers, it places a mark on the page table of the register. All
-   the further accesses to these registers will be trapped and
-   emulated. The emulation does the real MMIO, and the layer returns
-   the calculated value to the virtual machine. The granularity of
-   trapping in our implementation is one page. In 64-bit x86, that is
-   4 KB. This may lead to unnecessary trappings and performance
-   impacts. In Section 6.3, we elaborate the performance impact.
+   Xen hypervisor provides functions for trapping memory accesses, and
+   the self-emulation layer in the hypervisor is based on them. Every
+   time the layer receives a request to commit self-emulation on a
+   list of registers, it places a mark on the page table of the
+   register. All the further accesses to these registers will be
+   trapped and emulated. The emulation does the real MMIO, and the
+   layer returns the calculated value to the virtual machine. The
+   granularity of trapping in our implementation is one page. In
+   64-bit x86, that is 4 KB. This may lead to unnecessary trappings
+   and performance impacts. In Section \ref{sec-6-4}, we elaborate the
+   performance impact.
 
 ** Pages dirtied by DMA
-   It is difficult to mark a page written by hardware as dirty
-   automatically, while marking it manually is simple. All we need is
+   The process of live migration highly depends on dirty page
+   tracking. Dirty page tracking is implemented with the help of page
+   tables in the newest version of Xen. However, memory access by DMA
+   could not be tracked by page tables. Intel VT-d
+   technology\cite{vtd} provides I/O page tables, but it still cannot
+   be used to track dirty pages.
+
+   Hardware cannot automatically mark a page as dirty after DMA memory
+   access, but marking the page manually is effortless. All we need is
    doing a memory write. In a typical network device, hardware
    accesses descriptor rings and buffers by DMA. After the hardware
-   wrote anyone of them, an interrupt will be sent to the driver in
-   the guest kernel. The driver knows all changes on the descriptor
-   rings and buffers, so it could do dummy writes (read a byte and
-   write it back) to mark the pages as dirty.
+   writes anyone of them, an interrupt is sent to the driver in
+   the virtual machine guest kernel. The driver knows all changes on
+   the descriptor rings and buffers, so it can just do dummy writes
+   (read a byte and write it back) to mark the pages as dirty.
 
    This method misses a few packets that have already been processed
    by the hardware but have not been processed by the driver yet. This
    may lead to packets duplicating or packets missing. Fortunately,
    the amount of such packets is small enough that connections of
    reliable protocols such as TCP connections would not be
-   affected. Section 6.2 presents the details of these duplicated or
-   missed packets.
+   affected. Section \ref{sec-6-3} presents the details of these
+   duplicated or missed packets.
 
 ** Descriptor ring
-   During our implementation, we come across an issue on Intel 82576
-   VF. The head register of descriptor rings (either RX and TX) are
-   read-only. The values of them are owned by the hardware, and
-   writing any value except for 0 is not allowed (writing 0 is an
-   initialization). Thus, head registers can only be restored using
-   state replay method.
+   During our implementation, we come across an issue on both Intel
+   82576 VF and Intel 82599 VF. The head registers of descriptor rings
+   (either RX or TX) are read-only. Their values are owned by the
+   hardware, and writing any value except for 0 is not allowed
+   (writing 0 is an initialization). Consequently, head registers
+   should be restored using state replay. However, committing state
+   replay on this register is not that easy. The only way of
+   increasing head registers is trying to send/receive a packet. By
+   putting dummy descriptors in the rings, altering head registers
+   does not need cooperations with external network, but it costs
+   thousands of MMIO writings.
 
    One method of solving it is resetting everything in the rings. By
    freeing buffers in rings and resetting rings to empty, the driver
@@ -553,43 +646,88 @@ Virtualization, Live migration, Pass-through device, State cloning
    registers, we shifts the ring itself. During the restoration
    procedure, the driver shifts the RX and TX rings, and makes sure
    the position of each original head is at index 0. After that, the
-   driver only needs initialization on head registers to make the
+   driver only needs to write 0 on the head registers to make the
    rings work. Also, the driver saves the offsets between the original
    rings and the shifted rings. Every time the head/tail registers or
    rings are accessed by the driver, the offsets are used to make sure
-   the access was right. This method introduces additional operations
-   on accessing indexes/rings, so it consumes more time in the
-   driver. Section 6.3 will measure this performance impact.
+   the access was correct. This method introduces additional
+   operations to accessing indexes/rings, so it consumes more CPU time
+   in the driver. Section \ref{sec-6-4} will measure this performance
+   impact.
+
+** Location announcement for switches
+#+CAPTION: Location announcement for switch
+#+LABEL: fig:switch
+#+ATTR_Latex: width=3in
+[[./switch.eps]]
+
+   The live migration changes the physical location of the virtual
+   machine. In some network environment, the location change needs to
+   be announced. Figure \ref{fig:switch} is an example. In Figure
+   \ref{fig:switch}, the source host and the destination host are
+   connected by an Ethernet switch. The Ethernet switch creates a
+   mapping from MAC addresses to its ports during run time. Before the
+   migration happens, the MAC address of the virtual machine is mapped
+   to Port A, and all network packets to this MAC address are routed
+   to Port A. After the migration, the MAC-port mapping must be
+   modified, as the location of virtual machine's MAC address changes
+   to Port D. If we do not announce the location change, the switch
+   will keep routing packets to Port A and break connections in the
+   virtual machine.
+
+   Modern Ethernet switches often have no interface of the MAC-port
+   mapping. They maintain the mapping transparently as the network
+   runs. A straightforward way of changing switch's MAC-port mapping
+   is sending a broadcast packet from the virtual machine. Since the
+   broadcast packet can be sent to every switch in this sub-network,
+   all MAC-port mappings of these switches are changed. We change the
+   IGBVF driver, the IXGBEVF driver and the Xen Ethernet front-end
+   driver to send an ARP response packet after the live migration. As
+   soon as Ethernet switches receive the ARP packet, they changes
+   MAC-port mappings and all the incoming packets are routed
+   correctly.
 
 * Evaluation
   In this section, we present the performance data with our
   implementation of CompSC and compare them to the system without
-  CompSC (original one) and the bonding driver solution. We first
-  present a micro benchmark to measure the performance impact due to
-  self-emulation layer in the hypervisor. Then we show our measurement
-  of the number of duplicated or missed packet due to DMA dirty page
-  issue in Section 6.2. With scp, netperf and SPECweb2009 benchmark,
-  Section 6.3 presents a comparison of the runtime performance between
-  several situations including the original environment and our
-  implementation. Section 6.4 illustrates the migration process using
-  a timeline figure, with CompSC, para-virtualized device, and bonding
-  driver solution. In the end, Section 6.5 lists the amount of code
-  changes during our implementation.
+  CompSC (original one), VMDq technique, and bonding driver
+  solution. We first present a micro benchmark to measure the
+  performance impact due to self-emulation layer in the
+  hypervisor. Then we show our measurement of the number of duplicated
+  or missed packet due to DMA dirty page issue in Section
+  \ref{sec-6-3}. With scp, Netperf and SPECweb2009 benchmark, Section
+  \ref{sec-6-4} presents a comparison of the run time performance
+  between several situations including the original environment and
+  our implementation. Section \ref{sec-6-5} illustrates the migration
+  process using a timeline figure, with CompSC, para-virtualized
+  device, VMDq technique, and bonding driver solution. In the end,
+  Section \ref{sec-6-6} lists the size of hardware states to migrate,
+  and Section \ref{sec-6-7} lists the amount of code changes during
+  our implementation.
 
-  The evaluation uses the following environment: two equivalent
-  servers, with Intel Core i5 670 CPU (3.47 GHz, 4 cores), 4 GB
-  memory, 1 TB harddisk, and Intel 82576 SR-IOV network card; one
-  client machine for SPECweb2009 client, with Intel Core i3 540 CPU
-  (3.07 GHz, 4 cores), 4 GB memory, 500 GB harddisk and an Intel
-  82578DC network card. These three machines are connected using a
-  1000 Mb network switcher. The virtual machine uses 4 virtual CPUs, 3
-  GB memory, and a virtual function of Intel 82576 network card. It is
-  virtualized in HVM (Hardware-assisted Virtual Machine). The virtual
-  machine also uses a PV network device in the tests with PV device.
+** Benchmarks and environment
+   Our target application is virtualized web servers. In the
+   evaluation part, we focus on the throughput and the overall
+   performance as web servers. We use Netperf benchmark and file
+   transferring using scp to measure the throughput of virtual
+   machines, and use SPECweb2009 to evaluate web server performance.
+
+   The evaluation uses the following environment: two equivalent
+   servers, with Intel Core i5 670 CPU (3.47 GHz, 4 cores), 4 GB
+   memory, 1 TB hard disk, an Intel 82576 SR-IOV network card and an
+   Intel 82599 SR-IOV network card; one client machine for SPECweb2009
+   client, with Intel Core i3 540 CPU (3.07 GHz, 4 cores), 4 GB
+   memory, 500 GB hard disk, one Intel 82578DC network card and two
+   Intel 82598 network cards. These three machines are connected using
+   a 1000 Mb Ethernet switch. The virtual machine uses 4 virtual
+   CPUs, 3 GB memory, and a virtual function of Intel 82576 network
+   card. It is virtualized in HVM (Hardware-assisted Virtual
+   Machine). The virtual machine also uses a PV network device in the
+   tests with PV device.
 
 ** Micro benchmark for self-emulation
-   In Section 3.3 we present our idea of self-emulation, and figure
-   out that the idea is a tradeoff between accuracy and
+   In Section \ref{sec-3-2} we present our idea of self-emulation, and
+   figure out that the idea is a trade-off between accuracy and
    performance. In this section we measure the performance loss due to
    self-emulation. In our test, we access one of the counter registers
    10,000 times. Using TSC register, we measure the total cost of CPU
@@ -599,7 +737,7 @@ Virtualization, Live migration, Pass-through device, State cloning
 
 #+CAPTION: Micro benchmark for MMIO cost
 #+LABEL: tbl:mmio
-#+ATTR_Latex: align=|l|l|
+#+ATTR_Latex: align=|r|r|
    |---------------+------------------|
    | *MMIO direct* | *MMIO intercept* |
    |---------------+------------------|
@@ -614,9 +752,9 @@ Virtualization, Live migration, Pass-through device, State cloning
 
 #+CAPTION: Access rate of statistic registers
 #+LABEL: tbl:mmio_rate
-#+ATTR_Latex: align=|l|l|l|l|l|
+#+ATTR_Latex: align=|l|r|r|r|r|
    |---------+---------+------------+------------+--------|
-   |         | *Time*  | *Rx bytes* | *Tx bytes* | *MMIO* |
+   |         | *Time*  | *RX bytes* | *TX bytes* | *MMIO* |
    |---------+---------+------------+------------+--------|
    | Netperf | 60.02 s | 54.60 G    | 1.19 G     | 4.50/s |
    |---------+---------+------------+------------+--------|
@@ -625,28 +763,31 @@ Virtualization, Live migration, Pass-through device, State cloning
 
    Table \ref{tbl:mmio_rate} shows the access frequency of statistic
    registers. From the result, we figure out that the frequency of
-   statistic register access is a constant: 4.5 access/s, no matter
-   what task it was performing, and no matter which of Rx and Tx is
-   heavier. A following code check on the linux kernel uncovered this
+   statistic register access was a constant: 4.5 access/s, no matter
+   what task it was performing, and no matter which of RX and TX was
+   heavier. A following code check on the Linux kernel uncovered this
    behavior. IGBVF driver uses a watchdog with a frequency of 0.5 Hz
    to observe the statistic registers, and the access frequency is
    expected to be a constant. At such low frequency, the overhead of
    self-emulation is 10.30\us/s. With consideration of cache and TLB,
    the overhead may be slightly heavier, but it can still be
-   considered small. *?*
+   considered negligible.
 
 ** Duplicated and missed packet due to unmarked dirty page
-   In Section 5.4, we present our idea of marking pages dirtied by
-   DMA. The solution may cause packet loss and packet duplication. In
-   this section, we measure the number of duplicated packets and
-   missed packets under different workloads. A straight-forward
-   prediction is that the number may become larger when the network
-   device is busy. In our measurement, the workload of scp and SPECweb
-   are used, and the situation of no workload is also considered.
+   In Section \ref{sec-5-4}, we present our idea of marking pages
+   dirtied by DMA. The solution may cause packet loss and packet
+   duplication. In this section, we measure the number of duplicated
+   packets and missed packets under different workloads. Busy CPU
+   leads to longer suspending time, and busy network device increases
+   the packet received/transmitted during migration. A
+   straight-forward prediction is that the number may become larger
+   when both the CPU and the network device are busy. In our
+   measurement, the workload of scp and SPECweb are used, and the
+   situation of no workload is also considered.
 
-#+CAPTION: Duplicated and missed packet count during live migration
+#+CAPTION: Duplicated and missed packet count during live migration, using Intel 82576
 #+LABEL: tbl:miss_pkt
-#+ATTR_Latex: align=|l|l|l|
+#+ATTR_Latex: align=|l|c|c|
    |-------------+-------+--------|
    |             | *Dup* | *Miss* |
    |-------------+-------+--------|
@@ -658,57 +799,63 @@ Virtualization, Live migration, Pass-through device, State cloning
    |-------------+-------+--------|
 
    The results in Table \ref{tbl:miss_pkt} show that, our method works
-   perfectly in both no worload situation and scp situation. No packet
-   loss or duplication has happened. On SPECweb workload, only 3
-   packet losses have happend. These abnormal behaviors will not break
-   the connection of TCP, and thus the service is kept live during the
-   migration.
+   perfectly in both no workload situation and scp situation. No
+   packet loss or duplication has happened. On SPECweb workload, only
+   3 packet losses have happened. These abnormal behaviors will not
+   break the connection of TCP, and thus the service is kept alive
+   during the migration.
 
 ** Performance with workloads
    CompSC adds a synchronization method between the hypervisor and the
    driver. Performance impact of this addition is a vital data of our
-   solution. The method described in Section 5.5 also has performance
-   impact at runtime. In this section, the runtime performance of
-   CompSC is measured and compared to original one. The self-emulation
-   layer in the hypervisor also has performance overhead. Although in
-   the test of Section 6.1, the overhead is measured as small, we
-   still consider this factor in this section. Also, in Section 5.3 we
+   solution. The method described in Section \ref{sec-5-5} also has
+   performance impact at run time. In this section, the run time
+   performance of CompSC is measured and compared to the original
+   one. The self-emulation layer in the hypervisor also has
+   performance overhead. Although in the test of Section
+   \ref{sec-6-2}, the overhead is measured as small, we still consider
+   this factor in this section. Also, in Section \ref{sec-5-3} we
    describe the layer may perform unnecessary interceptions. The layer
    is optional and is only enabled after migration, so the situation
    with and without the layer are both measured.
 
+#+CAPTION: Throughput and CPU utilization by scp and Netperf on Intel 82576
+#+LABEL: fig:perf_tp
+#+ATTR_Latex: width=\linewidth
+[[./perf_tp.eps]]
+
    The first test runs a benchmark of Netperf, and an scp workload
    with a CD image file =specweb2009.iso= sized 491.72 MB. In this
-   test we measure the throughput of the workload in four situations:
+   test we measure the throughputs of the workload in four situations:
    Domain 0 (Dom0), original IGBVF driver (VF orig), IGBVF driver with
    CompSC (VF+comp), and IGBVF driver with CompSC and with
    self-emulation layer enabled (VF+comp+int). Figure
    \ref{fig:perf_tp} illustrates the results. In the figure, we can
    see that the throughput of four situations are almost the same in
-   two workloads. Also, the CPU utilizations in the figure present
-   that the VF+comp and VF+comp+int situations consume almost the same
+   two workloads. Also, the CPU utilization in the figure present that
+   the VF+comp and VF+comp+int situations consume almost the same
    amount of CPU resources as VF orig situation. The CPU utilization
    of Domain 0 differs from three VF situations, because they had
-   different kernel version, linux distribution, and background
+   different kernel version, Linux distribution, and background
    processes. The only thing we notice is that the throughput of scp
    on VF+comp+int is slightly less than that on VF orig and
    VF+comp. On Netperf benchmark, the network is the bottleneck of the
    whole system while on scp workload, CPU is the bottleneck. The CPU
-   utilization near 100 percents show a CPU bottleneck of a
+   utilization near 100 percents shows a CPU bottleneck of a
    single-threaded workload. The situation with self-emulation layer
    consumes more CPU resources and thus has a slightly lower
    performance.
 
-#+CAPTION: Throughput and CPU utilization by scp and Netperf
-#+LABEL: fig:perf_tp
+#+CAPTION: Good requests by SPECweb 2009 on Intel 82576
+#+LABEL: fig:perf_spec_req
 #+ATTR_Latex: width=\linewidth
-[[./perf_tp.eps]]
+[[./perf_spec_req.eps]]
 
    SPECweb 2009 is our real-world benchmark. In our evaluation, we
-   configure and run SPECweb 2009 with different pressures on the
-   server in the virtual machine. We invoke the test with five
+   configured and ran SPECweb 2009 with different pressures on the
+   server in the virtual machine. We invoked the test with five
    different configurations, each with 50, 100, 150, 200, 250
-   concurrent sessions respectively. Also, the tests are ran above
+   concurrent sessions respectively. Also, the tests were ran above
    three situations: original IGBVF driver (VF orig), IGBVF driver
    with CompSC (VF+comp), and IGBVF driver with CompSC and with
    self-emulation layer enabled (VF+comp+int).
@@ -717,14 +864,14 @@ Virtualization, Live migration, Pass-through device, State cloning
    three types: good ones, tolerable ones, and failed ones. The good
    ones are requests which have a quick response, while the tolerable
    ones have a long but tolerable response time. Failed ones have
-   intolerable response time, or no response at all. In our test, we
+   intolerable response time or no response at all. In our test, we
    collect the number of good requests and presented them in Figure
    \ref{fig:perf_spec_req}.
 
-#+CAPTION: Good requests by SPECweb 2009
-#+LABEL: fig:perf_spec_req
+#+CAPTION: Average response time by SPECweb 2009 on Intel 82576
+#+LABEL: fig:perf_spec_resp
 #+ATTR_Latex: width=\linewidth
-[[./perf_spec_req.eps]]
+[[./perf_spec_resp.eps]]
 
    The number of good requests increases when the number of sessions
    is increasing linearly, until we meet the bottleneck at 250
@@ -736,10 +883,10 @@ Virtualization, Live migration, Pass-through device, State cloning
    almost 2/3, indicating clearly that the server is in a heavy
    workload.
 
-#+CAPTION: Average response time by SPECweb 2009
-#+LABEL: fig:perf_spec_resp
+#+CAPTION: Performance and CPU utilization by SPECweb 2009 with 250 sessions on Intel 82576
+#+LABEL: fig:perf_spec_250
 #+ATTR_Latex: width=\linewidth
-[[./perf_spec_resp.eps]]
+[[./perf_spec_250.eps]]
 
    Before reaching the bottleneck, no obvious difference is found in
    the three situations in Figure \ref{fig:perf_spec_req} and Figure
@@ -754,19 +901,6 @@ Virtualization, Live migration, Pass-through device, State cloning
    and CPU utilization with 250 sessions in Figure
    \ref{fig:perf_spec_250}.
 
-#+CAPTION: Performance and CPU utilization by SPECweb 2009 with 250 sessions
-#+LABEL: fig:perf_spec_250
-#+ATTR_Latex: width=\linewidth
-[[./perf_spec_250.eps]]
-
-#+BEGIN_LaTeX
-\begin{figure*}[htb]
-\epsfig{file=timeline_compsc.eps}
-\caption{CompSC: Throughput and CPU utilization during live migration}
-\label{fig:timeline_compsc}
-\end{figure*}
-#+END_LaTeX
-
    The total requests handled by the server in three situations are on
    the same horizontal line in Figure \ref{fig:perf_spec_250}. The
    reason why VF+comp and VF+comp+int have fewer good requests is the
@@ -777,11 +911,87 @@ Virtualization, Live migration, Pass-through device, State cloning
    meantime, VF+comp and VF+comp+int consume 0.59% and 0.64% more CPU
    respectively, whose impact can also be considered as very small.
 
+#+CAPTION: Throughput and CPU utilization by scp and Netperf on Intel 82599
+#+LABEL: fig:perf_10g_tp
+#+ATTR_Latex: width=\linewidth
+[[./perf_10g_tp.eps]]
+
+#+CAPTION: Good requests by SPECweb 2009 on Intel 82599
+#+LABEL: fig:perf_10g_spec_req
+#+ATTR_Latex: width=\linewidth
+[[./perf_10g_spec_req.eps]]
+
+#+CAPTION: Average response time by SPECweb 2009 on Intel 82599
+#+LABEL: fig:perf_10g_spec_resp
+#+ATTR_Latex: width=\linewidth
+[[./perf_10g_spec_resp.eps]]
+
+   Similar results are presented using Intel 82599 and IXGBEVF
+   driver. As Figure \ref{fig:perf_10g_tp} shows, Intel 82599 VF was
+   capable of more than 9.4Gbps throughput in Netperf tests, and
+   CompSC did not impact the high throughput. In scp tests, Intel
+   82599 VF produces almost the same throughput as Intel 82576 VF,
+   because CPU is the bottleneck in scp tests. In SPECweb2009 tests,
+   the result of Intel 82599 VF is also similar to the result of Intel
+   82576 VF. We can clearly see the bottleneck was reached on 250
+   sessions, and CompSC slightly degraded the response time like the
+   situation of Intel 82576 VF.
+
 ** Service down time
+   In this section, we illustrate the whole process of live
+   migration. We treat the server as live if it had a positive
+   throughput. To fulfill the throughput, we run Netperf benchmark
+   during our test. The throughput on the Netperf client machine is
+   recorded as data. To shorten the migration time, which is mostly
+   decided by the amount of memory, we change the virtual machine
+   configuration. In this test, the virtual machine had 1 GB memory.
+
+   Figure \ref{fig:timeline_compsc} presents the throughput and CPU
+   utilization during a live migration in the situation of using
+   CompSC on Intel 82576 VF, and Figure \ref{fig:timeline_pv} presents
+   the result in the situation of PV device using Intel 82576 PF as
+   physical device. In the figures, we first notice that the service
+   downtime of CompSC is about 0.9s while the downtime of PV device is
+   about 1.4s. CompSC have a 35.7% shorter and better service
+   downtime. We also notice that in the test of PV device, service is
+   down shortly before the 1.4s downtime (On about 20.6s). In the
+   meantime, the CPU utilization goes as high as 327%. The reason of
+   this behavior is the suspending process of PV-on-HVM
+   (Para-virtualization on Hardware-assisted Virtual Machine). The
+   suspending on PV-on-HVM needs cooperation of drivers in the virtual
+   machine. The cooperation consumes much CPU resources and causes a
+   small period of service down. Focusing on the CPU utilization line,
+   we notice that the lines on both figures have the same shape, and
+   the line on Figure \ref{fig:timeline_pv} is higher than the line on
+   Figure \ref{fig:timeline_compsc}. This fits our expectation. The
+   pass-through device consumes less CPU resources than the PV device,
+   which is the advantage of pass-through device.
+
+   We also have a test on the solution of bonding driver. With the
+   limitation of current Xen implementation, we only have a test of
+   the bonding driver with a VF of Intel 82576 and an emulated E1000
+   device as backup. Figure \ref{fig:timeline_bond} shows the
+   result. The solution of bonding driver has an extra service down at
+   about 3s. This is because the switching of bonding driver takes
+   several milliseconds and causes packet loss. The shape of CPU
+   utilization line is similar to that of CompSC and PV device, but
+   the throughput is much less. The performance of emulated device is
+   not as good as PV device or pass-through device. In the figure, we
+   can also get the service downtime of bonding driver solution: about
+   1.2s.
+
+#+BEGIN_LaTeX
+\begin{figure*}[htb]
+\epsfig{file=timeline_compsc.eps}
+\caption{CompSC on Intel 82576: Throughput and CPU utilization during live migration}
+\label{fig:timeline_compsc}
+\end{figure*}
+#+END_LaTeX
+
 #+BEGIN_LaTeX
 \begin{figure*}[htb]
 \epsfig{file=timeline_pv.eps}
-\caption{PV device: Throughput and CPU utilization during live migration}
+\caption{PV device on Intel 82576: Throughput and CPU utilization during live migration}
 \label{fig:timeline_pv}
 \end{figure*}
 #+END_LaTex
@@ -794,183 +1004,188 @@ Virtualization, Live migration, Pass-through device, State cloning
 \end{figure*}
 #+END_LaTex
 
-   In this section, we illustrate the whole process of live
-   migration. We treat the server as live if it had a positive
-   throughput. To fullfil the throughput, we run Netperf benchmark
-   during our test. The throughput on the Netperf client machine is
-   recorded as data. To shorten the migration time, which is mostly
-   decided by the amount of memory, we change the virtual machine
-   configuration. In this test, the virtual machine had 1 GB memory.
+   In order to render the performance benefit from SR-IOV, we
+   evaluated the migration process of Intel 82599 VF...
 
-   During live migration, the service in the virtual machine should
-   remain alive. However, in our environment, the service is stopped
-   after the migration in the situations of both PV device and
-   CompSC. After an analysis on network packets, we find the root
-   cause. The root cause is that the network switcher does not know
-   the movement of the virtual machine. It keeps forwarding packets to
-   the old place of the virtual machine after the migration. We change
-   both the IGBVF driver and the Xen ethernet front-end driver to send
-   an ARP response after the live migration. As soon as the switcher
-   receives the ARP packet, it changes its MAC-Port mapping and all
-   the incoming packets are forwarded correctly.
+#+BEGIN_LaTeX
+\begin{figure*}[htb]
+\epsfig{file=timeline_10g_compsc.eps}
+\caption{CompSC on Intel 82599: Throughput and CPU utilization during live migration}
+\label{fig:timeline_10g_compsc}
+\end{figure*}
+#+END_LaTex
 
-   Figure \ref{fig:timeline_compsc} presents the throughput and CPU
-   utilization during a live migration in the situation of CompSC, and
-   Figure \ref{fig:timeline_pv} presents the result in the situation
-   of PV device. In the figures, we first notice that the service
-   downtime of CompSC is about 0.9s while the downtime of PV device is
-   about 1.4s. CompSC have a 35.7% shorter and better service
-   downtime. We also notice that in the test of PV device, service is
-   down shortly before the 1.4s downtime (On about 20.6s). In the
-   meantime, the CPU utilization goes as high as 327%. The reason of
-   this behavior is the suspending process of PV-on-HVM
-   (Para-virtualization on Hardware-assisted Virtual Machine). The
-   suspending on PV-on-HVM needs cooperations of drivers in the
-   virtual machine. These cooperations consume much CPU resources and
-   cause a small period of service down. Focusing on the CPU
-   utilization line, we notice that the lines on both figures have the
-   same shape, and the line on Figure \ref{fig:timeline_pv} is higher
-   than the line on Figure \ref{fig:timeline_compsc}. This fits our
-   expectation. The pass-through device consumes less CPU resources
-   than the PV device, which is the advantage of pass-through device.
+#+BEGIN_LaTeX
+\begin{figure*}[htb]
+\epsfig{file=timeline_10g_pv.eps}
+\caption{PV device on Intel 82599: Throughput and CPU utilization during live migration}
+\label{fig:timeline_10g_pv}
+\end{figure*}
+#+END_LaTex
 
-   We also have a test on the solution of bonding driver. With the
-   limitation of current Xen implementation, we only have a test of
-   the bonding driver with a VF of Intel 82576 and an emulated E1000
-   device as backup. Figure \ref{fig:timeline_bond} shows the
-   result. The solution of bonding driver have an extra service down
-   at about 3s. This is because the switching of bonding driver takes
-   several milliseconds and causes packet loss. The shape of CPU
-   utilization line is similar to that of CompSC and PV device, but
-   the throughput is much less. The performance of emulated device is
-   not as good as PV device or pass-through device. In the figure, we
-   can also get the service downtime of bonding driver solution: about
-   1.2s.
+#+BEGIN_LaTeX
+\begin{figure*}[htb]
+\epsfig{file=timeline_10g_vmdq.eps}
+\caption{VMDq on Intel 82598: Throughput and CPU utilization during live migration}
+\label{fig:timeline_10g_vmdq}
+\end{figure*}
+#+END_LaTex
+
+** Size of total hardware states and past communications
+   In Section \ref{sec-3-2} we mentioned that the state replay may
+   record large amount of past communications, and we introduces
+   several optimizations. This section, we list the amount of hardware
+   states and past communications needed in our implementation with
+   Intel 82576 network card and Intel 82599 network card.
+
+#+CAPTION: Size of total hardware states in our implementation
+#+LABEL: tbl:state_size
+#+ATTR_Latex: align=|l|c|
+   |---------------------------------+----------------|
+   |                                 | *Size (bytes)* |
+   |---------------------------------+----------------|
+   | States in IGBVF driver          |             88 |
+   |---------------------------------+----------------|
+   | VF-in-PF states in IGB driver   |            848 |
+   |---------------------------------+----------------|
+   | States in IXGBEVF driver        |            104 |
+   |---------------------------------+----------------|
+   | VF-in-PF states in IXGBE driver |            326 |
+   |---------------------------------+----------------|
+
+   According to Table \ref{tbl:state_size}, we can see the total
+   amount of hardware states to be transferred during the migration is
+   less than 1 kilobyte, in both IGBVF driver and IXGBEVF driver. In a
+   typical network environment, the network throughput is at least 100
+   Mbps. Consequently, the transmitting cost of hardware states can
+   safely be ignored.
 
 ** Implementation complexity
    The CompSC needs code changes in the network device driver. In a
    common doubt on whether it is easy to be deployed, the complexity
    of device code changes is the most critical one. In Table
    \ref{tbl:loc}, we collect the line of code changes in our
-   implemenation on different components. The synchronization
+   implementation on different components. The synchronization
    mechanism is common to every network driver which is willing to do
-   live migration. The total code changes of it is just 220 lines. On
-   VF driver, only 183 lines of codes are added or modified. It is
-   said that one can easily patch an existing device driver into a
-   CompSC supported one. Even the CompSC architecture itself have
-   small amount of code changes. Only 854 lines of codes are added or
-   modified in both the Xen hypervisor and Xen tools. Thus, the CompSC
-   is easy to deploy.
+   live migration. The total code changes of it are just 153 lines. In
+   IGBVF driver, only 344 lines of codes are added or modified, and in
+   IXGBEVF driver only 303 lines are added or modified. It is said
+   that one can easily patch an existing device driver into a CompSC
+   supported one. Even the CompSC architecture itself have small
+   amount of code changes. 808 lines of code changes were committed in
+   either the Xen hypervisor or Xen tools. As a result, the CompSC is
+   easy to deploy.
 
 #+CAPTION: Lines of code changes in the implementation
 #+LABEL: tbl:loc
-#+ATTR_Latex: align=|l|l|
+#+ATTR_Latex: align=|l|c|
    |-------------------+----------------|
    |                   | *Line of code* |
    |-------------------+----------------|
-   | Xen hypervisor    |            390 |
+   | Xen hypervisor    |            362 |
    |-------------------+----------------|
-   | Xen tools         |            464 |
+   | Xen tools         |            446 |
    |-------------------+----------------|
-   | VF driver(common) |            220 |
+   | VF driver(common) |            153 |
    |-------------------+----------------|
-   | VF driver(spec)   |            183 |
+   | IGBVF driver      |            344 |
    |-------------------+----------------|
-   | PF driver         |            181 |
+   | IGB driver        |            215 |
    |-------------------+----------------|
+   | IXGBEVF driver    |            303 |
+   |-------------------+----------------|
+   | IXGBE driver      |            233 |
+   |-------------------+----------------|
+
+* Discussion
+  In this paper, we focus on the pass-through network device, but in
+  the design of CompSC, we focus on every hardware device. CompSC can
+  surely be used for other pass-through devices as well, but not all
+  devices have expected performance. One aspect is the amount of
+  hardware states, which varies among different devices. In our
+  evaluation, the amount of hardware states of network device is small
+  enough, but some devices have tremendous large state capacity, such
+  as graphic card with large video memory. In modern graphic cards,
+  video memory larger than 256 MB is quite common. With such devices,
+  the transmitting cost for device state is quite large and can impact
+  the service downtime or even be a bottleneck. A potential solution
+  is shutting down some features of graphic cards such as 3D rendering
+  before migration to reduce the total amount of the hardware
+  states. Another aspect is the cost for state replay. Since state
+  replay only commits on invisible states, devices with many invisible
+  states may have higher cost for state replay. Actually,
+  IGBVF/IXGBEVF is an example. The ring head register is invisible,
+  and the state replay may cost hundreds of MMIO. In our
+  implementation, we use a method of shifting to avoid the large
+  cost. This aspect depends on hardware design of devices. Luckily,
+  for most devices the cost for state replay is small, because
+  generally it is the cost of the device initialization.
+
+  CompSC can also be implemented on other hypervisors. No assumption
+  is made in the design of CompSC. The requirements for hypervisor of
+  CompSC are: (1) Live migration support (2) Pass-through device
+  support (3) Foreign page access. These features are common in
+  today's hypervisors such as KVM\cite{kvm} and VMware
+  ESX\cite{vmware-esx}. Hopefully, the CompSC support of these
+  hypervisors only need less than 1K LOC just like our implementation
+  on Xen.
+
+  CompSC needs both driver changes and hypervisor changes. It's
+  somewhat a limitation on deployment. However, CompSC does not need
+  changes on virtual machine guest kernel, and the new driver is
+  totally compatible with original hypervisor and non-virtualized
+  environment. In this aspect, it's easy to deploy since one can
+  safely use the new (CompSC) driver in old environment. Once the
+  CompSC support of hypervisor is settled, the feature of live
+  migration is enabled. In terms of deployment, the solution of
+  bonding driver needs both hypervisor changes, guest kernel changes,
+  and a new guest driver. Its convenience is based on the fact that
+  Linux kernel already has the bonding driver, and it is hard to
+  deploy on other OS such as Windows. NPIA needs hypervisor changes
+  and a set of plug-in binaries. Compare to CompSC, every device it
+  supports has a brand new driver (plug-in binary). Furthermore, the
+  new driver can only be used in NPIA environment. The solution of
+  VMDq is worse. It needs hypervisor changes, guest kernel changes,
+  and a pair of new drivers (A.K.A front-end driver and back-end
+  driver). Overall, CompSC has advantages on deployment and usage
+  among all solutions.
 
 * Conclusion
-  In this paper we present CompSC, a state cloning mechanism to
-  achieve the live migration support on pass-through network
-  devices. During the migration, three kinds of device states are
-  cloned using the most appropriate method. With a synchronization
-  mechanism between the device driver and the hypervisor, the hardware
-  is taken over by the hypervisor and performed register saving. Right
-  after the migration, device driver restores the hardware state on
-  the destination machine using knowledge of the device and register
-  values saved by the hypervisor. Furthermore, a self-emulation layer
-  inside the hypervisor is provided to achieve the accuracy of
-  statistic registers.
+  In this paper we present CompSC, a hardware state migration
+  mechanism to achieve the live migration support on pass-through
+  network devices. During the migration, three kinds of device states
+  are migrated using the most appropriate method. With a
+  synchronization mechanism between the device driver and the
+  hypervisor, the hardware is taken over by the hypervisor and
+  performed register saving. Right after the migration, device driver
+  restores the hardware state on the destination machine using
+  knowledge of the device and register values saved by the
+  hypervisor. Furthermore, a self-emulation layer inside the
+  hypervisor is provided to achieve the accuracy of statistic
+  registers.
 
-  Our method have less than 2.88% performance impact at runtime, and a
+  Our method has less than 2.88% performance impact at run time and a
   service downtime 35.7% shorter than that of para-virtualized network
   device during the live migration. Besides, our method needs little
   implementation effort and could be easily deployed on different
-  devices.
+  network devices.
 
-#+LATEX: \bibliographystyle{unsrt}
+#+LATEX: \bibliographystyle{abbrvnat}
 #+LATEX: \bibliography{compsc}
 
-* Comments from Middleware                                         :noexport:
-  I would have liked some more results related to the robustness of
-  implementation, e.g. how many times did you manage to migrate back
-  and forth or in a circle around multiple random machines. Also,
-  individual migration is easy, it becomes a problem in presence of
-  multiple migrations taking place in the system concurrently.
+* Comments and TODOs                                                        :noexport:
+** TODO List
+   * Cite of self-emulation
+   * Cite of state replay
+** Comments from Middle-ware: Shortages
+   * on page 5, replay is discussed, but without any specific
+     information on when/which operations were tracked for replay? The
+     ones related to read/only and read-clear?
 
-  I would have liked more details on the use of migration. What
-  scenarios did you use migration in, how effective it was, etc.
-
-  you write ".. with a like count on code changes in our
-  implementation, our solution is easy to deploy and can be widely
-  used" This is somewhat subjective statement. First, there is a
-  requirement to make code changes of the VM and hypervisor, is this
-  true? This somewhat limits deployment and use.
-
-  Please reference appropriately with number of the issue, paegs,
-  year/month. (e.g. in reference 1 and elsewhere for
-  magazines/journals) Please use year and pages for conference
-  proceedings.
-
-  missing discussing of the choice of benchmarks (netperf, scp), what
-  kind of load the represent
-
-  on page 1, "Several efforts have been made on enabling pass-through
-  network I/O migration[15, 16, 17], but none of them solves the
-  problem perfectly": the discussion on shortcomings is fragmented on
-  the paper and in some cases not in sufficient depth
-
-  refers to bonding driver in initial part of the paper without
-  defining it, so discussion may be lost in he reader
-
-  could provide better arguments on the sync part: added a lock to all
-  dev operations. It's true the lock won't be contended in the common
-  case, but it would make sense to discuss this when first introduced
-
-  on page 5, replay is discussed, but without any specific information
-  on when/which operations were tracked for replay? The ones related
-  to read/only and read-clear?
-
-  on page 5, "It would be different when using SR-IOV network device":
-  why?
-
-  It would be good if the paper discussed the applicability of this
-  approach for other hypervisors
-
-  The evaluation section provides table 3 with info on
-  duplicated/missing packages for the scp/specweb workloads.  But what
-  kind of workload could have bigger numbers?
-
-  How come the migration setup was not working out of the box, and you
-  had to find root cause and fix with the ARP?
-
-  The paper discusses live migration support for pass-through network
-  devices. How about applicability for other pass-through devices? The
-  last sentence on the paper says that the method requires little
-  effort and could be easily deployed on different devices (I guess
-  you're assuming other network devices) but no arguments were
-  provided to back this statement up
-
-  For instance, one of the main mechanisms to support live-migration
-  leverages the replay of past communication to bring the new driver
-  to the up-to-date state. A natural question to me seems how scalable
-  is this solution. How much state need to be saved to enable state
-  replay? The authors mention that some optimizations are possible but
-  it would have been nice to see some real numbers and experimental
-  analysis.
-
-  both CompSC and the para-virtualized driver achieve the same
-  throughput. I can imagine that under more challenging scenarios
-  (e.g., a 10-Gbps network interface), the direct I/O driver would
-  outperform the para-virtualized one. It would be interesting to see
-  in these conditions what are the performance of CompSC.
+** Comments from Middle-ware: Suggestions
+   * I would have liked some more results related to the robustness of
+     implementation, e.g. how many times did you manage to migrate
+     back and forth or in a circle around multiple random
+     machines. Also, individual migration is easy, it becomes a
+     problem in presence of multiple migrations taking place in the
+     system concurrently.

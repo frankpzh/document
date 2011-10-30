@@ -11,7 +11,6 @@ set yrange [0:3]
 set ytics nomirror
 
 set term postscript eps enhanced size 3in,2.25in
-set output "perf_spec_resp.eps"
 
 plot "perf_spec_resp.txt" using 2 ti "VF orig reqs" lc 7 lt 1,\
 	"" using 3 ti "VF+comp reqs" lc 7 lt 1,\

@@ -14,7 +14,6 @@ cpu(x)=x/1000000
 tp(x)=x/100000*8
 
 set term postscript eps enhanced size 6.5in,2.25in
-set output "timeline_bond.eps"
 
 set arrow 1 from 2,500 to 2.65,150
 set label 1 "Hot unplug" at 2.3,530 right
