@@ -835,7 +835,7 @@ Virtualization, Live migration, Pass-through device
    two workloads. Also, the CPU utilization in the figure present that
    the VF+comp and VF+comp+int situations consume almost the same
    amount of CPU resources as VF orig situation. The CPU utilization
-   of Domain 0 differs from three VF situations, because they had
+   of Dom0 differs from three VF situations, because they had
    different kernel version, Linux distribution, and background
    processes. The only thing we notice is that the throughput of scp
    on VF+comp+int is slightly less than that on VF orig and
@@ -1004,9 +1004,6 @@ Virtualization, Live migration, Pass-through device
 \end{figure*}
 #+END_LaTex
 
-   In order to render the performance benefit from SR-IOV, we
-   evaluated the migration process of Intel 82599 VF...
-
 #+BEGIN_LaTeX
 \begin{figure*}[htb]
 \epsfig{file=timeline_10g_compsc.eps}
@@ -1030,6 +1027,37 @@ Virtualization, Live migration, Pass-through device
 \label{fig:timeline_10g_vmdq}
 \end{figure*}
 #+END_LaTex
+
+   In order to render the performance benefit from SR-IOV, we
+   evaluated the migration process of Intel 82599 VF. Figure
+   \ref{fig:timeline_10g_compsc} is the result of an Intel 82599 VF with
+   CompSC solution. The shape of the CPU line and throughput line are
+   almost the same as in Figure \ref{fig:timeline_compsc}. Sometimes the
+   throughput collapses for a little while (less than 0.2s), that's
+   because the CPU activation in Dom0 since Dom0 and the guest are
+   sharing the physical CPU, and the throughput of 10 Gbps is very
+   challenging for our environment. The test result of PV device is in
+   Figure \ref{fig:timeline_10g_pv}. We used Intel 82599 PF as the
+   physical device of the PV device, however, the PV device could only
+   achieve about 2.5 Gbps. Also, the throughput was impacted when the
+   CPU utilization was higher than 200% (16s to 22s). In terms of
+   downtime, the result is similar to Intel 82576 situations. The
+   downtime of CompSC on Intel 82599 is about 0.8s and the downtime of
+   PV device is about 1.4s.
+
+   The test result of VMDq is presented in Figure
+   \ref{fig:timeline_10g_vmdq}. The VMDq support in Xen is currently
+   abandoned, and we only found VMDq support on early version of
+   Xen. Thus in VMDq tests, we use Xen 3.0 and Linux 2.6.18.8 with a
+   PV guest virtual machine. We used Intel 82598 network card as the
+   physical device of VMDq, because Intel 82599 is not supported in
+   Linux 2.6.18.8. The migration time and downtime in the test was
+   shorter than CompSC and PV situations due to PV guest. PV guest had
+   advantages on migration, since the kernel of PV guest is
+   modified. The core issue of VMDq is on the throughput, which is
+   about 5 Gbps. Although VMDq had larger throughput than PV
+   situation, but it was only 53% of the throughput of Intel 82599 VF
+   with CompSC solution.
 
 ** Size of total hardware states and past communications
    In Section \ref{sec-3-2} we mentioned that the state replay may

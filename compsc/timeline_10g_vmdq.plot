@@ -14,7 +14,7 @@ sec(x)=x/10
 cpu(x)=x/1000000
 tp(x)=x/100
 
-set term postscript eps enhanced size 6.5in,2.25in
+set term postscript eps enhanced size 6.5in,2in
 
 set arrow 1 from 8,4 to 10.7,2.3
 set label 1 "Migration start" at 8,4 right

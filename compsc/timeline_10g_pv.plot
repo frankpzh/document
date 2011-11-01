@@ -13,7 +13,7 @@ set y2tics autofreq
 sec(x)=x/10
 tp(x)=x/100
 
-set term postscript eps enhanced size 6.5in,2.25in
+set term postscript eps enhanced size 6.5in,2in
 
 set arrow 1 from 5,7 to 7.8,6
 set label 1 "Migration start" at 5,7 right
