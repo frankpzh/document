@@ -6,7 +6,7 @@ set key box left top
 
 set xtics nomirror ("scp" 0, "netperf" 1)
 set ytics nomirror
-set ylabel "Throughput (Mb/s)" offset 2,0
+set ylabel "Throughput (Mbps)" offset 2,0
 set yrange [0:1000]
 set y2tics
 set y2label "CPU utilization (%)"

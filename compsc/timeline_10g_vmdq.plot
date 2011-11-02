@@ -3,7 +3,7 @@ set key box left top
 set xlabel "Time (s)"
 set xrange [0:25]
 set xtics nomirror 1
-set ylabel "Throughput (Gb/s)" offset 2,0
+set ylabel "Throughput (Gbps)" offset 2,0
 set yrange [0:10]
 set ytics nomirror
 set y2label "CPU utilization (%)" offset -1,0
