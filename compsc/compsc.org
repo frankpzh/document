@@ -20,23 +20,24 @@
 
 #+LATEX: \begin{abstract}
 
-With regard to recent virtualization techniques, performance of
-network I/O is critical. Unfortunately, efforts to improve device
-performance by granting virtual machines direct access to hardware
-have thus far prevented live migration. No existing methods solve this
-issue perfectly. This is largely because current hypervisors cannot
-migrate hardware states directly, and device drivers in virtual
-machines cannot help hypervisors migrate hardware states efficiently.
+Live migration is one of the most important features of virtualization
+technology. With regard to recent virtualization techniques,
+performance of network I/O is critical. Current network I/O
+virtualization (e.g. Para-virtualized I/O, VMDq) has a significant
+performance gap with native network I/O. Pass-through network devices
+have near native performance, however, they have thus far prevented
+live migration. No existing methods solve the problem of live
+migration with pass-through devices perfectly.
 
-In this paper, we propose CompSC: a mechanism of hardware state
-migration to enable the live migration support of pass-through
+In this paper, we propose CompSC: a solution of hardware state
+migration that will enable the live migration support of pass-through
 devices. We go on to apply CompSC to SR-IOV network interface
 controllers. We discuss the attributes of different hardware states in
-pass-through devices, and migrates them with corresponding
-techniques. Our experiments show that CompSC enables live migration
-with a less than 2.88\% overhead on the pass-through network
-device. In addition, service downtime during live migration is 35.7\%
-less than para-virtualized devices.
+pass-through devices and migrate them with corresponding
+techniques. Our experiments show that CompSC enables live migration on
+an Intel 82599 VF with a throughput 282.66\% higher than
+para-virtualized devices. In addition, service downtime during live
+migration is 42.9\% less than para-virtualized devices.
 
 #+LATEX: \end{abstract}
 
@@ -92,39 +93,39 @@ Virtualization, Live migration, Pass-through device
   stop working and the driver will likely crash. Several efforts have
   been made on enabling pass-through network I/O migration, such as
   the bonding driver solution\cite{bonding} and Network Plug-in
-  Architecture (NPA/NPIA)\cite{npa}, but these methods all
-  bypass the problem of hardware state migration and have similar
+  Architecture (NPA/NPIA)\cite{npa}, but these methods all bypass the
+  problem of hardware state migration by switching to either a PV
+  device or an emulated device during the migration, and have similar
   short comings.
 
-  In this paper, we propose CompSC to address the problem of
-  efficiently migrate the state of a hardware device, while also being
-  able to enable virtual machine live migration with pass-though
-  NICs. Unlike previous approaches which bypass the problem by
-  switching to either a para-virtualized device or an emulated device
-  during the migration, we directly face the challenge of hardware
-  state migration. With an analysis on different kinds of hardware
-  states, CompSC applies methods of state replay and self-emulation on
-  pass-through devices. With a few code changes on the device driver,
-  CompSC achieves our objective of enabling live migration support for
-  pass-through devices with minimal impact on run time performance as
-  well as a minute time cost for hardware state
-  migration. Furthermore, compared to the other solutions proposed in
-  \cite{lm-direct-io,bonding,npa}, CompSC maintains the values of
-  statistic registers across live migrations.
+  In this paper, we propose CompSC to address the problem of how to
+  efficiently migrate the state of a hardware device and enable
+  virtual machine live migration with pass-through NICs. We directly
+  face and solve the challenge of hardware state migration. With an
+  analysis on different kinds of hardware states, CompSC applies
+  methods of state replay and self-emulation on pass-through
+  devices. With few code changes on the device driver, CompSC achieves
+  our objective of enabling live migration support for pass-through
+  devices with minimal impact on run time performance as well as a
+  minute time cost for hardware state migration.
 
   We implemented CompSC on the Xen\cite{xen-art} platform, with the
-  Intel 82576 SR-IOV NIC \cite{kawela}. In the evaluation section, we
-  measured the performance impact of our method using micro
-  benchmarks, scp, Netperf and SPECweb 2009\cite{specweb}. Our results
-  show that our method degraded the performance by only 2.88%. Without
-  a self-emulation layer in the hypervisor, the overhead could be as
-  little as 0.75%. We also measured the service downtime during live
-  migration with a para-virtualized network device, an Intel 82576
-  using our implementation, and an Intel 82576 using the bonding
-  driver solution. Our solution had a 35.7% shorter downtime when
-  compared to the para-virtualized network device. Finally, with a
-  line count on code changes required by our implementation, we are
-  convinced that our solution can be deployed easily.
+  Intel 82576 SR-IOV NIC \cite{kawela} and the Intel 82599 SR-IOV NIC
+  \cite{nitanic}. In the evaluation section, we measured the
+  performance impact of our method using micro benchmarks, scp,
+  Netperf and SPECweb 2009\cite{specweb}. Our results show that CompSC
+  enabled live migration support on an Intel 82599 VF with a
+  throughput 282.66% higher than PV network devices and 89.57% higher
+  than VMDq. We also measured the service downtime during live
+  migration; our solution had a 42.9% shorter downtime when compared
+  to the PV network device.
+
+  Implementing and deploying CompSC is easy. A line count on code
+  changes required by our implementation shows that CompSC needs
+  little coding effort. After we implemented CompSC support on an
+  Intel 82576 NIC, adding CompSC support on an Intel 82599 NIC only
+  required two days time. Thus, we are convinced that CompSC can
+  easily be deployed on a wide range of different NICs.
 
   The remainder of this paper is structured as follows: Section
   \ref{sec-2} introduces the related work. Section \ref{sec-3}
@@ -132,8 +133,9 @@ Virtualization, Live migration, Pass-through device
   attributes. Section \ref{sec-4} describes the design of CompSC and
   the structure of the system. Section \ref{sec-5} describes how we
   implement CompSC on the Xen platform with an Intel 82576
-  NIC. Section \ref{sec-6} shows experimental results and we conclude
-  in Section \ref{sec-7}.
+  NIC. Section \ref{sec-6} shows experimental results. Section
+  \ref{sec-7} discusses the usage model of CompSC and we conclude in
+  Section \ref{sec-8}.
 
 * Related work
 ** Migration
@@ -197,17 +199,17 @@ Virtualization, Live migration, Pass-through device
    There are several efforts on the topic of live migration with
    pass-through devices. In a study by Edwin et al.\cite{bonding}, the
    Linux Ethernet Bonding Driver\cite{linux-src} is used. In
-   \cite{bonding}, a para-virtualized network device is used as the
-   backup device of a pass-through device. Before the start of a live
-   migration, the pass-through device is hot unplugged using an ACPI
-   event. In this way, there is no need to worry about migrating the
-   pass-through device. This method does not require any code changes
-   on the virtual machine guest kernel, but has several disadvantages:
+   \cite{bonding}, a PV network device is used as the backup device of
+   a pass-through device. Before the start of a live migration, the
+   pass-through device is hot unplugged using an ACPI event. In this
+   way, there is no need to worry about migrating the pass-through
+   device. This method does not require any code changes on the
+   virtual machine guest kernel, but has several disadvantages:
    1. It only works with Linux guests.
-   2. It requires an additional para-virtualized network device. The
-      physical device must be connected to the same Ethernet switch
-      with the pass-through device. This may lead to additional
-      hardware cost and resources costs.
+   2. It requires an additional PV network device. The physical device
+      must be connected to the same Ethernet switch with the
+      pass-through device. This may lead to additional hardware cost
+      and resources costs.
    3. The hot unplug event introduces another service downtime in our
       test. (Section \ref{sec-6-5})
    4. After live migration, the driver clears every statistic register
@@ -226,13 +228,12 @@ Virtualization, Live migration, Pass-through device
    contrast to SR-IOV, however, VMDq also benefits from the PV network
    device. Unlike SR-IOV, which exposes a complete device interface to
    the virtual machine guest, VMDq only provides network queues to the
-   virtual machine guest. With para-virtualization techniques like
-   shared pages, VMDq avoids packet copying between the virtualized
-   network queue and the physical network queue. VMDq provides faster
-   performance than para-virtualized network devices and is still able
-   to support live migration in a similar way. We elaborate the
-   comparison of performance and downtime between VMDq and our
-   solution in Section \ref{sec-6-5}.
+   virtual machine guest. With PV techniques like shared pages, VMDq
+   avoids packet copying between the virtualized network queue and the
+   physical network queue. VMDq provides faster performance than PV
+   network devices and is still able to support live migration in a
+   similar way. We elaborate the comparison of performance and
+   downtime between VMDq and our solution in Section \ref{sec-6-5}.
 
    Network Plug-In Architecture (NPIA/NPA) \cite{npa} is an
    architecture raised by VMware and Intel that tries to solve the
@@ -248,11 +249,11 @@ Virtualization, Live migration, Pass-through device
    easily support live migration. Just like bonding driver solution,
    NPIA uses a software interface as backup device. Compared to the
    bonding driver solution, NPIA may need less time switching the
-   pass-through device to the backup. One maojr drawback is that NPIA
+   pass-through device to the backup. One major drawback is that NPIA
    also needs to completely rewrite the network drivers, which might
    prevent NPA from being widely employed.
 
-* Hardware states migration
+* Approaches of hardware state migration
   The core problem with live migration support of pass-through devices
   is the migration of hardware states. The whole of the pass-through
   devices are assigned to virtual machines, rendering them
@@ -388,7 +389,7 @@ Virtualization, Live migration, Pass-through device
 
 #+CAPTION: An example structure of self-emulation
 #+LABEL: fig:selfemu
-#+ATTR_Latex: width=2.8in
+#+ATTR_Latex: width=2.6in
 [[./selfemu.eps]]
 
 ** Summary
@@ -469,7 +470,7 @@ Virtualization, Live migration, Pass-through device
    accesses and a little bit of cache pollution. In Section
    \ref{sec-6-4}, we provide an evaluation on the costs of the rwlock.
 
-** I/O registers migration
+** Hardware state migration
    CompSC performs the I/O register migration in a straightforward
    way. The hypervisor scans the list of registers on the network
    device and saves them into the shared memory area mentioned in
@@ -481,7 +482,6 @@ Virtualization, Live migration, Pass-through device
    know the list of registers; it gets this list from the shared
    memory area, put there by the driver during the boot process.
 
-** State replay
    State replay is completed by the device driver. The operation sets
    and hardware operations are protected by rwlock. Every time before
    the driver releases the read lock, it stores enough information of
@@ -490,7 +490,6 @@ Virtualization, Live migration, Pass-through device
    destination hardware into the same state using the saved
    information.
 
-** Self-emulation
    The self-emulation layer can be put into the hypervisor or the
    device driver. A self-emulation layer in the hypervisor will trap
    all accesses to the emulated registers and return the correct
@@ -596,7 +595,7 @@ Virtualization, Live migration, Pass-through device
    granularity of this trapping mechanism in our implementation is one
    page. On 64-bit x86 architecture, this translates to 4 KB. It
    should be noted that this may lead to unnecessary trappings and
-   performance impacts; weelaborate on this is in Section
+   performance impacts; we elaborate on this is in Section
    \ref{sec-6-4}.
 
 ** Pages dirtied by DMA
@@ -635,7 +634,7 @@ Virtualization, Live migration, Pass-through device
    replay on this register is not that easy. The only way of
    increasing head registers is trying to send/receive a packet. By
    putting dummy descriptors in the rings, altering head registers
-   does not need cooperations with external network, but it costs
+   does not need cooperation with external network, but it costs
    thousands of MMIO writings.
 
    One method of solving this is resetting everything in the rings. By
@@ -669,7 +668,7 @@ Virtualization, Live migration, Pass-through device
 
    Live migration changes the location of the virtual machine. In some
    network environments, the location change needs to be
-   discoveried. Figure \ref{fig:switch} gives an example: the source
+   discovered. Figure \ref{fig:switch} gives an example: the source
    and destination host are connected by an Ethernet switch that
    creates a mapping from MAC addresses to its ports during run
    time. Before migration, the MAC address of the virtual machine is
@@ -692,6 +691,48 @@ Virtualization, Live migration, Pass-through device
    packet, they change the MAC-port mappings and all incoming packets
    are routed correctly.
 
+** Implementation complexity
+   The CompSC needs modifications in the network driver. Among the
+   common concerns about the practicality of deployment, the
+   complexity of device code changes is the most critical. In Table
+   \ref{tbl:loc}, we depict the number of line code changes in our
+   implementation on different components. The synchronization
+   mechanism is common to every network driver capable of live
+   migration. The number of common code changes is just 153 lines. In
+   the IGBVF driver, only 344 lines of codes are added or modified,
+   and in the IXGBEVF driver only 303 lines are added or modified.
+   Even the CompSC architecture itself has a small number of code
+   changes. 808 lines of code changes were committed in either the Xen
+   hypervisor or Xen tools.
+
+   We claim that one can easily patch an existing device driver into a
+   CompSC supported one. During our implementation, we first completed
+   the CompSC support on Intel 82576 NIC and related
+   experiments. Further efforts to add the CompSC support on Intel
+   82599 NIC only cost us two days. As a result, CompSC is easy and
+   practical to deploy.
+
+#+CAPTION: Lines of code changes in the implementation
+#+LABEL: tbl:loc
+#+ATTR_Latex: align=|l|c|
+   |-------------------+----------------|
+   |                   | *Line of code* |
+   |-------------------+----------------|
+   | Xen hypervisor    |            362 |
+   |-------------------+----------------|
+   | Xen tools         |            446 |
+   |-------------------+----------------|
+   | VF driver(common) |            153 |
+   |-------------------+----------------|
+   | IGBVF driver      |            344 |
+   |-------------------+----------------|
+   | IGB driver        |            215 |
+   |-------------------+----------------|
+   | IXGBEVF driver    |            303 |
+   |-------------------+----------------|
+   | IXGBE driver      |            233 |
+   |-------------------+----------------|
+
 * Evaluation
   In this section, we present the results of our experimental data
   that compare a system equipped with our implementation of CompSC to
@@ -706,10 +747,9 @@ Virtualization, Live migration, Pass-through device
   between several situations including the original environment and
   our implementation. Section \ref{sec-6-5} illustrates the migration
   process using a timeline figure comparing CompSC, a PV network
-  device, the VMDq technique, and the bonding driver solution. Section
-  \ref{sec-6-6} lists the size of hardware states to migrate, and
-  Section \ref{sec-6-7} lists the amount of code changes used in our
-  implementation.
+  device, the VMDq technique, and the bonding driver
+  solution. Finally, Section \ref{sec-6-6} lists the size of hardware
+  states to migrate.
 
 ** Benchmarks and environment
    Our target application is virtualized web servers. As a result, in
@@ -939,17 +979,18 @@ Virtualization, Live migration, Pass-through device
 #+ATTR_Latex: width=\linewidth
 [[./perf_10g_spec_resp.eps]]
 
-   Similar results are presented using the Intel 82599 and IXGBEVF
-   driver. As Figure \ref{fig:perf_10g_tp} shows, the Intel 82599 VF
-   was capable of more than 9.4Gbps throughput on the Netperf tests,
-   and CompSC had no detectable impact on throughput. In the scp
-   tests, the Intel 82599 VF produced almost the same throughput as
-   the Intel 82576 VF because the CPU was the bottleneck in scp
-   tests. In the SPECweb2009 tests, the performance of the Intel 82599
-   VF was also comparable to the performance of the Intel 82576 VF. We
-   can clearly see the bottleneck was reached at 250 sessions, and
-   CompSC slightly degraded response time in a similar fashion to the
-   Intel 82576 VF.
+   In order to evaluate the performance impact of CompSC on more
+   challenging scenarios, we ran the Netperf tests, scp tests and
+   SPECweb 2009 tests on an Intel 82599 VF with CompSC. As Figure
+   \ref{fig:perf_10g_tp} shows, the Intel 82599 VF was capable of more
+   than 9.4 Gbps throughput on the Netperf tests, and CompSC had no
+   detectable impact on throughput. In the scp tests, the Intel 82599
+   VF produced almost the same throughput as the Intel 82576 VF
+   because the CPU was the bottleneck in scp tests. In the SPECweb2009
+   tests, the performance of the Intel 82599 VF was also comparable to
+   the performance of the Intel 82576 VF. We can clearly see the
+   bottleneck was reached at 250 sessions, and CompSC slightly
+   degraded response time in a similar fashion to the Intel 82576 VF.
 
 ** Service down time
    In this section, we graphically illustrate the whole process of
@@ -1022,7 +1063,7 @@ Virtualization, Live migration, Pass-through device
 
    In order to assess the performance benefit of SR-IOV, we evaluated
    the migration process of an Intel 82599 VF. Figure
-   \ref{fig:timeline_10g_compsc} depects the results of our test on an
+   \ref{fig:timeline_10g_compsc} depicts the results of our test on an
    Intel 82599 VF with CompSC solution. The shape of the CPU line and
    throughput line are almost the same as in Figure
    \ref{fig:timeline_compsc}. Sometimes the throughput collapsed for a
@@ -1031,12 +1072,14 @@ Virtualization, Live migration, Pass-through device
    challenging for our environment. The test results of PV device are
    shown in Figure \ref{fig:timeline_10g_pv}. We used the PF Intel
    82599 PF as the physical device of the PV device, however, the PV
-   device could only achieve about 2.5 Gbps throughput. The impact on
-   throughput occurred when the CPU utilization was higher than 200%
-   (16s to 22s). In terms of downtime, the result these tests are
-   similar to that of the Intel 82576 situations. The downtime of
-   CompSC on the Intel 82599 VF is about 0.8s and the downtime of the
-   PV device was about 1.4s.
+   device could only achieve about 2.5 Gbps throughput. The Intel
+   82599 VF with CompSC achieved as much as a 282.66% higher
+   throughput than the PV device.  The impact on throughput occurred
+   when the CPU utilization was higher than 200% (16s to 22s). In
+   terms of downtime, the result these tests are similar to that of
+   the Intel 82576 situations. The downtime of CompSC on the Intel
+   82599 VF was about 0.8s, which was 42.9% less than the downtime of
+   the PV device, i.e. about 1.4s.
 
    The test results of VMDq are presented in Figure
    \ref{fig:timeline_10g_vmdq}. While VMDq support in Xen is currently
@@ -1049,8 +1092,8 @@ Virtualization, Live migration, Pass-through device
    guest had advantages on migration, since the kernel of PV guest is
    modified for virtualization. The core issue of VMDq relates to
    throughput, which was about 5 Gbps. Although VMDq had larger
-   throughput than PV scenario, but it was only 53% of the throughput
-   of an Intel 82599 VF with the CompSC solution.
+   throughput than the PV scenario, the throughput of the Intel 82599
+   VF with CompSC was 89.57% higher than VMDq.
 
 #+BEGIN_LaTeX
 \begin{figure*}[htb]
@@ -1104,43 +1147,6 @@ Virtualization, Live migration, Pass-through device
    network environment, the network throughput is at least 100
    Mbps. Consequently, the transmission cost of hardware states can
    safely be ignored.
-
-** Implementation complexity
-   The CompSC needs modifications in the network driver. Among the
-   common concerns about the practicality of deployment, the
-   complexity of device code changes is the most critical. In Table
-   \ref{tbl:loc}, we depect the number of line code changes in our
-   implementation on different components. The synchronization
-   mechanism is common to every network driver capable of live
-   migration. The number of common code changes is just 153 lines. In
-   the IGBVF driver, only 344 lines of codes are added or modified,
-   and in the IXGBEVF driver only 303 lines are added or modified.  We
-   claim that one can easily patch an existing device driver into a
-   CompSC supported one. Even the CompSC architecture itself has a
-   small number of code changes. 808 lines of code changes were
-   committed in either the Xen hypervisor or Xen tools. As a result,
-   CompSC is easy and practical to deploy.
-
-#+CAPTION: Lines of code changes in the implementation
-#+LABEL: tbl:loc
-#+ATTR_Latex: align=|l|c|
-   |-------------------+----------------|
-   |                   | *Line of code* |
-   |-------------------+----------------|
-   | Xen hypervisor    |            362 |
-   |-------------------+----------------|
-   | Xen tools         |            446 |
-   |-------------------+----------------|
-   | VF driver(common) |            153 |
-   |-------------------+----------------|
-   | IGBVF driver      |            344 |
-   |-------------------+----------------|
-   | IGB driver        |            215 |
-   |-------------------+----------------|
-   | IXGBEVF driver    |            303 |
-   |-------------------+----------------|
-   | IXGBE driver      |            233 |
-   |-------------------+----------------|
 
 * Discussion
   In this paper, we focus on the pass-through NIC, but in the design
@@ -1198,21 +1204,21 @@ Virtualization, Live migration, Pass-through device
   deployment and usage advantages that outweigh these other solutions.
 
 * Conclusion
-  In this paper, we present CompSC, a hardware state migration
-  mechanism to achieve live migration support on pass-through network
-  devices. During migration, three kinds of device states are migrated
-  using the most appropriate method. With a synchronization mechanism
-  between the device driver and the hypervisor, the hardware is taken
-  over by the hypervisor and register saving is performed. Right after
-  migration, the device driver restores the hardware state on the
-  destination machine using knowledge of the device and the register
-  values saved by the hypervisor. Furthermore, a self-emulation layer
-  inside the hypervisor is provided to ensure the accuracy of
-  statistic registers.
+  In this paper, we present CompSC: a solution of hardware state
+  migration that achieves live migration support on pass-through
+  network devices. With a synchronization mechanism between the device
+  driver and the hypervisor, hardware is taken over by the hypervisor
+  and hardware state saving is performed. Right after migration, the
+  device driver restores the hardware state on the destination machine
+  using knowledge of the device and saved states. Furthermore, a
+  self-emulation layer inside the hypervisor is provided to ensure the
+  accuracy of statistic registers.
 
-  Our method has less than a 2.88% performance impact at run time and
-  a service downtime 35.7% shorter than that of para-virtualized
-  network devices during live migration. Lastly, our method needs
+  With CompSC, the Intel 82599 VF enabled live migration support with
+  a throughput 282.66% higher than PV network devices and 89.57%
+  higher than VMDq. During live migration, the service downtime was
+  42.9% shorter than that of PV network devices. The performance
+  impact of CompSC during run time is negligible. Lastly, CompSC needs
   minimal effort to implement and can easily be deployed on different
   NICs.
 
@@ -1224,7 +1230,6 @@ We thank Ian Pratt for his insight in the paper.
 
 * Comments and TODOs                                                        :noexport:
 ** TODO List
-   * Cite of self-emulation
    * Cite of state replay
 ** Comments from Middle-ware: Shortages
    * on page 5, replay is discussed, but without any specific
