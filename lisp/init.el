@@ -76,22 +76,28 @@
 (add-hook 'dired-mode-hook
           (lambda ()
             (dired-omit-mode 1)
-            (setq dired-omit-files "\\.\\(o\\|d\\|opic\\)$")))
+            (setq dired-omit-files "\\.\\(o\\|opic\\|cmd\\)$")))
 
 ;; IBuffer settings
 (setq ibuffer-saved-filter-groups
       '(("default"
          ("Program" (or
                      (mode . c-mode)
-                     (mode . cc-mode)
+                     (mode . c++-mode)
                      (mode . makefile-mode)
                      (mode . makefile-gmake-mode)
                      (mode . makefile-automake-mode)
                      (mode . asm-mode)
-                     (mode . python-mode)))
+                     (mode . python-mode)
+                     (mode . awk-mode)
+                     (mode . shell-script-mode)))
          ("Document" (or
                       (mode . org-mode)
-                      (mode . latex-mode)))
+                      (mode . latex-mode)
+                      (mode . bibtex-mode)
+                      (mode . doctex-mode)
+                      (mode . html-mode)
+                      (mode . css-mode)))
          ("Patch" (mode . diff-mode))
          ("Elisp" (mode . emacs-lisp-mode))
          ("Dired" (mode . dired-mode))
