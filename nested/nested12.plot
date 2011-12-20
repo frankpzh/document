@@ -16,7 +16,7 @@ set ytics nomirror 0.1
 set grid y
 
 set term postscript eps enhanced size 7.2in,2.2in
-plot "nested12.dat" using 1 ti "Basic",\
+plot "nested12.txt" using 1 ti "Basic",\
      "" using 2 ti "Bypass" ls 1,\
      "" using 3 ti "PV VMCS" ls 1,\
      "" using 4 ti "Host EPT" ls 1 fs p 4,\

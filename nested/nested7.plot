@@ -10,5 +10,5 @@ set yrange [0:1000000]
 set ytics nomirror 100000 format "%.0f"
 
 set term postscript eps enhanced
-plot "nested7.dat" using 1 ti "Original",\
+plot "nested7.txt" using 1 ti "Original",\
      "" using 2 ti "Bypass" ls 1
