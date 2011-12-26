@@ -1227,19 +1227,3 @@ We thank Ian Pratt for his insight in the paper.
 
 #+LATEX: \bibliographystyle{abbrvnat}
 #+LATEX: \bibliography{compsc}
-
-* Comments and TODOs                                                        :noexport:
-** TODO List
-   * Cite of state replay
-** Comments from Middle-ware: Shortages
-   * on page 5, replay is discussed, but without any specific
-     information on when/which operations were tracked for replay? The
-     ones related to read/only and read-clear?
-
-** Comments from Middle-ware: Suggestions
-   * I would have liked some more results related to the robustness of
-     implementation, e.g. how many times did you manage to migrate
-     back and forth or in a circle around multiple random
-     machines. Also, individual migration is easy, it becomes a
-     problem in presence of multiple migrations taking place in the
-     system concurrently.
