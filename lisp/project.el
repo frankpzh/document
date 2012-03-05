@@ -58,13 +58,17 @@
 (defconst project-etags-temp-buffer "*Find-result*")
 
 (defun project-call-find (dir-list out-buffer)
-  (let ((arg-list '("-name" "*.[chS]")))
+  (let ((arg-list '("." "-name" "*.[chS]" "-or" "-name" "*.py")))
     (apply 'call-process
            "find"
            nil
            out-buffer
            nil
-           (append dir-list arg-list))))
+           (append dir-list arg-list)))
+  (beginning-of-buffer)
+  (while (not (eq (point) (point-max)))
+    (delete-char 2)
+    (next-line)))
 
 (defun project-make-tag (tag-file)
   (let ((project (project-find tag-file)))
