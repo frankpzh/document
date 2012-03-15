@@ -1,15 +1,13 @@
-OUTPUT="Resume-Frank.pdf"
+%.pdf: %.tex
+	xelatex $^
 
-$(OUTPUT): resume.dvi
-	dvipdf $^ $@
-
-resume.dvi: resume.tex
-	latex $^
+.PHONY: all
+all: resume.pdf resume-zhao.pdf
 
 .PHONY: show
-show: $(OUTPUT)
-	okular $^ || evince $^
+show:
+	okular *.pdf || evince *.pdf
 
 .PHONY: clean
 clean:
-	rm -f *.dvi *.log *.pdf *~
+	rm -f *.log *.pdf *~

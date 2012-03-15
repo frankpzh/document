@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-%.eps: %.plot %.dat
+%.eps: %.plot %.txt
 	gnuplot <(echo set output \"$@\") $(basename $@).plot
 
 %.eps: %.fig
@@ -16,7 +16,7 @@ $(TITLE).pdf: $(TITLE).tex $(TITLE).bib $(EPS)
 	latex $(TITLE).tex
 	dvips -G0 -Ppdf -Pcmz -Pamz -o $(TITLE).ps $(TITLE).dvi
 	ps2pdf $(TITLE).ps
-	rm -f $(TITLE).dvi $(TITLE).log $(TITLE).aux $(TITLE).ent $(TITLE).ps $(TITLE).out $(TITLE).bbl $(TITLE).blg
+	rm -f $(TITLE).dvi $(TITLE).log $(TITLE).aux $(TITLE).ent $(TITLE).out $(TITLE).bbl $(TITLE).blg
 
 $(TITLE).tex: $(TITLE).org
 	../scripts/org2tex.el $^
@@ -33,5 +33,6 @@ show: $(TITLE).pdf
 
 .PHONY: clean
 clean:
+	rm -f $(TITLE).dvi $(TITLE).aux $(TITLE).ent $(TITLE).out $(TITLE).bbl $(TITLE).blg $(TITLE).toc
 	rm -f *~ *.bak *.eps $(TITLE).tex $(TITLE).pdf *.log
 
