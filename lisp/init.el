@@ -49,6 +49,8 @@
 (global-set-key (kbd "C-=") 'increase-font-size)
 (global-set-key (kbd "C--") 'decrease-font-size)
 (global-set-key (kbd "C-c a") 'org-agenda)
+(global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
+(global-set-key (kbd "C-q") 'fill-region)
 
 (global-set-key (kbd "<f2>") 'undo)
 (global-set-key (kbd "C-<f2>") 'kmacro-start-macro-or-insert-counter)
@@ -67,6 +69,19 @@
 (global-set-key (kbd "<f11>") 'org-agenda-list)
 (global-set-key (kbd "S-<f11>") 'org-todo-list)
 (global-set-key (kbd "C-<f11>") 'org-remember)
+
+;; Editing
+(setq-default fill-column 79)
+
+;; Ask before quit
+(defun ask-before-closing ()
+  "Ask whether or not to close, and then close if y was pressed"
+  (interactive)
+  (if (y-or-n-p (format "Are you sure you want to exit Emacs? "))
+      (save-buffers-kill-terminal)
+    (message "Canceled exit")))
+
+(global-set-key (kbd "C-x C-c") 'ask-before-closing)
 
 ;; Dired settings
 (add-hook 'dired-load-hook
