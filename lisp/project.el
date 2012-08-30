@@ -68,7 +68,8 @@
   (beginning-of-buffer)
   (while (not (eq (point) (point-max)))
     (delete-char 2)
-    (next-line)))
+    (next-line)
+    (move-beginning-of-line nil)))
 
 (defun project-make-tag (tag-file)
   (let ((project (project-find tag-file)))
