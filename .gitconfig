@@ -22,3 +22,5 @@
 [core]
 	excludesfile = ~/.gitignore_global
   pager = 
+[push]
+  default = matching
