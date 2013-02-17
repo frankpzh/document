@@ -23,4 +23,4 @@
 
 (add-to-list 'auto-mode-alist '("templates/[^/]*\\.mk$" . mako-mode))
 
-(provide 'mako)
+(provide 'mako-mode)

@@ -1,33 +1,28 @@
-(add-to-list 'load-path "~/.emacs.d")
-(add-to-list 'load-path "~/.emacs.d/google3")
 (require 'require-maybe)
-(require-maybe 'utility)
-(require-maybe 'taglist)
-(require-maybe 'diff-color)
-(require-maybe 'cindent)
-(require-maybe 'pyindent)
-(require-maybe 'project)
-(require-maybe 'elisp-enhance)
-(require-maybe 'csearch)
-(require-maybe 'magit)
+
+;;----------------------------------------------------------------------
+;; File modes go before desktop
+(require-maybe 'mako-mode)
 (require-maybe 'js-mode)
-(require-maybe 'putty)
-(require-maybe 'mako)
+;; Lua Mode
+(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
+(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
+(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
 
-(require-maybe 'layout-setting)
-(require-maybe 'org-setting)
-(require-maybe 'shell-setting)
-(require-maybe 'ibuffer-setting)
 
-;; Desktop save
+;;----------------------------------------------------------------------
+;; Save/load desktop
 (when (require-maybe 'desktop)
+  (setq desktop-dirname "~/.emacs.d/")
   (desktop-save-mode 1))
 
-;; Font selection
-(setq font-family-preference-list
-      (list "Consolas"
-            "Droid Sans Mono"
-            "Terminus"))
+
+;;----------------------------------------------------------------------
+;; Interface settings: color-theme, font, menubar, toolbar, keymap
+(defvar font-family-preference-list
+  (list "Consolas"
+        "Droid Sans Mono"
+        "Terminus"))
 
 (defun select-font-family ()
   (let ((list font-family-preference-list))
@@ -41,20 +36,21 @@
     (if (not (null list))
         (car list))))
 
-;; Interface stuffs
 (defun setup-frame (frame)
-  (select-frame frame)
+  (if frame
+      (select-frame frame))
   (when (not (null window-system))
     (let ((family (select-font-family)))
       (set-face-attribute 'default nil :family family)
       (set-face-attribute 'default nil :height 110))
 
-    (tool-bar-mode 0))
+    (tool-bar-mode 0)
+    (menu-bar-mode 0))
 
-  (if (require-maybe 'color-theme)
-      (let ((color-theme-is-global nil))
-        (color-theme-initialize)
-        (color-theme-blackboard)))
+  (when (require-maybe 'color-theme)
+    (let ((color-theme-is-global (not frame)))
+      (color-theme-initialize)
+      (color-theme-blackboard)))
 
   ;; Faces
   (when (require-maybe 'magit)
@@ -63,20 +59,27 @@
     (set-face-attribute 'magit-header nil :foreground "cyan")
     (set-face-attribute 'magit-item-highlight nil :background "#202020"))
 
-  (set-face-attribute 'comint-highlight-input nil :foreground "light green")
-  (set-face-attribute 'comint-highlight-prompt nil :foreground "gold1")
+  (when (require-maybe 'shell)
+    (set-face-attribute 'comint-highlight-input nil :foreground "light green")
+    (set-face-attribute 'comint-highlight-prompt nil :foreground "gold1"))
+
+  (require-maybe 'diff-color)
 
   (if (eq system-uses-terminfo t)
-      (set-putty-keymap))
-  (menu-bar-mode 0)
+      (if (require-maybe 'putty)
+          (set-putty-keymap)))
 
- ;; Set window transparent
+  ;; Set window transparent
   (set-frame-parameter (selected-frame) 'alpha '(85 50)))
 
-(add-hook 'after-make-frame-functions
-          'setup-frame)
+(if (daemonp)
+    (add-hook 'after-make-frame-functions
+	      'setup-frame)
+  (setup-frame nil))
 
-;; Misc
+
+;;----------------------------------------------------------------------
+;; General settings
 (setq-default make-backup-files nil)
 (setq initial-buffer-choice nil)
 (column-number-mode t)
@@ -89,6 +92,55 @@
 ;; Editing
 (setq-default fill-column 79)
 
+;; Dired settings
+(when (require-maybe 'dired-x)
+  (add-hook 'dired-load-hook
+            (lambda ()
+              (load "dired-x")))
+
+  (add-hook 'dired-mode-hook
+            (lambda ()
+              (dired-omit-mode 1)
+              (setq dired-omit-files "\\.\\(o\\|opic\\|cmd\\)$"))))
+
+;; Gtalk
+(when (require-maybe 'jabber)
+  (setq jabber-account-list
+        '(("frankpzh@gmail.com"
+           (:network-server . "talk.google.com")
+           (:connection-type . ssl))))
+  (setq jabber-roster-line-format " %c %-25n %u %-8s  %S"))
+(setq frame-title-format '("" jabber-activity-mode-string " Emacs - %b"))
+
+;; Disable Version Control
+(setq vc-handled-backends nil)
+
+;; ispell language
+(setq ispell-local-dictionary "american")
+
+;; Browser setting
+(setq browse-url-browser-function 'browse-url-generic
+      browse-url-generic-program "google-chrome")
+
+(require-maybe 'layout-setting)
+(require-maybe 'org-setting)
+(require-maybe 'shell-setting)
+(require-maybe 'ibuffer-setting)
+(require-maybe 'cindent-setting)
+(require-maybe 'pyindent-setting)
+
+
+;;----------------------------------------------------------------------
+;; Third party libraries
+(require-maybe 'utility)
+(require-maybe 'taglist)
+(require-maybe 'project)
+(require-maybe 'elisp-enhance)
+(require-maybe 'csearch)
+(require-maybe 'magit)
+
+
+;;----------------------------------------------------------------------
 ;; Key bindings
 (define-prefix-command 'find-map)
 (define-prefix-command 'tag-map)
@@ -127,40 +179,5 @@
                 (lambda () (interactive) (compile "git5 --no-pager lint -d -v")))
 (global-set-key (kbd "C-x g c")
                 (lambda () (interactive) (compile "git5 comments -q")))
-
-;; Dired settings
-(when (require-maybe 'dired-x)
-  (add-hook 'dired-load-hook
-            (lambda ()
-              (load "dired-x")))
-
-  (add-hook 'dired-mode-hook
-            (lambda ()
-              (dired-omit-mode 1)
-              (setq dired-omit-files "\\.\\(o\\|opic\\|cmd\\)$"))))
-
-;; Gtalk
-(when (require-maybe 'jabber)
-  (setq jabber-account-list
-        '(("frankpzh@gmail.com"
-           (:network-server . "talk.google.com")
-           (:connection-type . ssl))))
-  (setq jabber-roster-line-format " %c %-25n %u %-8s  %S"))
-(setq frame-title-format '("" jabber-activity-mode-string " Emacs - %b"))
-
-;; Disable Version Control
-(setq vc-handled-backends nil)
-
-;; ispell language
-(setq ispell-local-dictionary "american")
-
-;; Lua Mode
-(autoload 'lua-mode "lua-mode" "Lua editing mode." t)
-(add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
-(add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
-
-;; Browser setting
-(setq browse-url-browser-function 'browse-url-generic
-      browse-url-generic-program "google-chrome")
 
 (provide 'init)

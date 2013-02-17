@@ -1,3 +1,3 @@
 (setq-default python-indent 2)
 
-(provide 'pyindent)
+(provide 'pyindent-setting)

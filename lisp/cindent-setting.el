@@ -49,4 +49,4 @@
           '(lambda nil
              (c-toggle-hungry-state)))
 
-(provide 'cindent)
+(provide 'cindent-setting)
