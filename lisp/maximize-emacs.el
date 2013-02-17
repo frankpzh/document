@@ -19,7 +19,4 @@
                            nil
                          'fullboth)))
 
-(add-hook 'window-setup-hook
-          'maximize-emacs t)
-
 (provide 'maximize-emacs)

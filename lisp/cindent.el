@@ -11,7 +11,8 @@
   (setq c-basic-offset 4)
   (setq indent-tabs-mode nil))
 
-(setq-default tab-width 4)
+(setq-default tab-width 2)
+(setq-default c-basic-offset 2)
 (setq-default indent-tabs-mode nil)
 
 ;; Create my personal style.
@@ -37,7 +38,7 @@
   "Frank Pan's C Programming Style")
 (c-add-style "frankpzh" frankpzh-c-style)
 (setq c-default-style
-      '((java-mode . "java") (awk-mode . "awk") (other . "frankpzh")))
+      '((other . "frankpzh")))
 
 (add-hook 'c-initialization-hook
           '(lambda nil

@@ -1,4 +1,3 @@
-;; Settings
 (setq org-log-done 'time)
 (setq org-hide-leading-stars t)
 ;; Add TODO keyword
@@ -14,17 +13,26 @@
 (add-hook 'org-after-todo-statistics-hook 'org-summary-todo)
 ;; Set up org remember for new techs
 (org-remember-insinuate)
-(if (eq system-type 'windows-nt)
-    (setq org-directory (concat sync-dir "/docs"))
-  (setq org-directory "~/document/docs"))
+(setq org-directory "~/public/doc")
 (setq org-default-notes-file (concat org-directory "/todo.org"))
-(define-key global-map "\C-cr" 'org-remember)
 (setq org-remember-templates
-      '(("Tech" ?t "** HOLD [#C] %?\n" nil "New Technologies")
-        ("Piece" ?p "** TODO [#A] %?\n" nil "Pieces")
-        ("Emacs" ?e "** HOLD [#B] %?\n" nil "Emacs")
-        ("Vocabulary" ?v "** %?\n" "voc.org" "Vocabulary Collection")))
+      '(("Work" ?w "** TODO [#A] %?\n" nil "Work related ideas")
+        ("Tech" ?t "** HOLD [#C] %?\n" nil "New Technologies")
+        ("Emacs" ?e "** HOLD [#B] %?\n" nil "Emacs")))
 ;; Add org agenda files
 (add-to-list 'org-agenda-files (concat org-directory "/todo.org"))
+
+(defun open-todo-or-quit ()
+  (interactive)
+  (if (equal
+       "/usr/local/google/home/frankpan/public/doc/todo.org"
+       (buffer-file-name (current-buffer)))
+      (quit-window)
+    (find-file org-default-notes-file)))
+
+(global-set-key (kbd "C-c r") 'org-remember)
+(global-set-key (kbd "<f11>") 'org-todo-list)
+(global-set-key (kbd "C-M-a") 'open-todo-or-quit)
+(global-set-key (kbd "C-<f11>") 'org-remember)
 
 (provide 'org-setting)

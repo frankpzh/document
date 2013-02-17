@@ -1,0 +1,22 @@
+(defun layouts-vert-split-shell ()
+  (interactive)
+  (delete-other-windows)
+  (split-window-vertically)
+  (other-window 1)
+  (shell-or-quit)
+  (other-window 1))
+
+(defun layouts-hori-split-shell ()
+  (interactive)
+  (delete-other-windows)
+  (split-window-horizontally)
+  (other-window 1)
+  (shell-or-quit)
+  (other-window 1))
+
+(define-prefix-command 'layout-map)
+(global-set-key (kbd "<f7>") 'layout-map)
+(global-set-key (kbd "<f7> v") 'layouts-vert-split-shell)
+(global-set-key (kbd "<f7> h") 'layouts-hori-split-shell)
+
+(provide 'layout-setting)

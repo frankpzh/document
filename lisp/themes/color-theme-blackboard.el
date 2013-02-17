@@ -25,7 +25,7 @@
       (cursor-color . "#A7A7A7")
       (foreground-color . "#F8F8F8")
       (mouse-color . "sienna1"))
-     (default ((t (:background "#0C1021" :foreground "#F8F8F8"))))
+     (default ((t (:background "black" :foreground "#F8F8F8"))))
      (blue ((t (:foreground "blue"))))
      (bold ((t (:bold t))))
      (bold-italic ((t (:bold t))))

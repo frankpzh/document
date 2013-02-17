@@ -9,12 +9,16 @@
 	dc = diff --cached
 	rec = rebase --continue
 	rea = rebase --abort
+  com = checkout pointer-main
 [user]
 	name = Frank Pan
-	email = frankpzh@gmail.com
+	email = frankpan@google.com
 [imap]
         Folder = "[Gmail]/Drafts"
         Host = "imaps://imap.gmail.com"
         User = "frankpzh@gmail.com"
         port = 993
         sslverify = false
+[core]
+	excludesfile = ~/.gitignore_global
+  pager = 
