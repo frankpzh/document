@@ -13,9 +13,10 @@
 ;;----------------------------------------------------------------------
 ;; File modes go before desktop
 (require-maybe 'mako-mode)
-(require-maybe 'js-mode)
+(autoload 'js2-mode "js2-mode" "Javascript editing mode." t)
+(add-to-list 'auto-mode-alist '("\\.js$" . js2-mode))
 ;; Yaml Mode
-(require 'yaml-mode)
+(autoload 'yaml-mode "yaml-mode" "YAML editing mode." t)
 (add-to-list 'auto-mode-alist '("\\.yaml$" . yaml-mode))
 ;; Lua Mode
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
