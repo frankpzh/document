@@ -150,7 +150,6 @@
 (require-maybe 'shell-setting)
 (require-maybe 'ibuffer-setting)
 (require-maybe 'cindent-setting)
-(require-maybe 'pyindent-setting)
 
 (when google-corp
   (require-maybe 'google-coding-style))
