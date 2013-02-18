@@ -1,3 +1,13 @@
+;;----------------------------------------------------------------------
+;; Basic environment
+(defvar google-corp nil)
+(let ((google3-dir (concat (file-name-directory
+                            (locate-library "init"))
+                           "/google3")))
+  (when (file-directory-p google3-dir)
+      (setq google-corp t)
+      (add-to-list 'load-path google3-dir)
+      (add-to-list 'load-path (concat google3-dir "/third_party"))))
 (require 'require-maybe)
 
 ;;----------------------------------------------------------------------
@@ -11,6 +21,14 @@
 (autoload 'lua-mode "lua-mode" "Lua editing mode." t)
 (add-to-list 'auto-mode-alist '("\\.lua$" . lua-mode))
 (add-to-list 'interpreter-mode-alist '("lua" . lua-mode))
+
+(when google-corp
+  (if (require-maybe 'borg-mode)
+      (add-to-list 'auto-mode-alist '("\\.borg$" . borg-mode)))
+  (if (require-maybe 'google3-build-mode)
+      (add-to-list 'auto-mode-alist '("BUILD$" . google3-build-mode)))
+  (if (require-maybe 'protobuf-mode)
+      (add-to-list 'auto-mode-alist '("\\.proto$" . protobuf-mode))))
 
 
 ;;----------------------------------------------------------------------
@@ -132,6 +150,9 @@
 (require-maybe 'cindent-setting)
 (require-maybe 'pyindent-setting)
 
+(when google-corp
+  (require-maybe 'google-coding-style))
+
 
 ;;----------------------------------------------------------------------
 ;; Third party libraries
@@ -139,8 +160,10 @@
 (require-maybe 'taglist)
 (require-maybe 'project)
 (require-maybe 'elisp-enhance)
-(require-maybe 'csearch)
 (require-maybe 'magit)
+(when google-corp
+  (require-maybe 'csearch)
+  (require-maybe 'google-lint))
 
 
 ;;----------------------------------------------------------------------

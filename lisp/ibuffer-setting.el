@@ -15,10 +15,9 @@
                      (mode . protobuf-mode)
                      (mode . yaml-mode)
                      (mode . google3-build-mode)
-                     (filename . "\\.mk$")
-                     (filename . "\\.borg$")
-                     (filename . "\\.proto$")
-                     (filename . "BUILD$")))
+                     (mode . borg-mode)
+                     (mode . protobuf-mode)
+                     (filename . "\\.mk$")))
          ("Program" (or
                      (mode . c-mode)
                      (mode . c++-mode)
