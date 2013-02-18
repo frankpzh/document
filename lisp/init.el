@@ -60,20 +60,23 @@
 (defun setup-frame (frame)
   (if frame
       (select-frame frame))
+
+  ;; Set (font, toolbar, menubar, transparent) in window system
   (when (not (null window-system))
     (let ((family (select-font-family)))
       (set-face-attribute 'default nil :family family)
       (set-face-attribute 'default nil :height 110))
-
     (tool-bar-mode 0)
-    (menu-bar-mode 0))
+    (menu-bar-mode 0)
+    (set-frame-parameter (selected-frame) 'alpha '(85 50)))
 
+  ;; Color theme
   (when (require-maybe 'color-theme)
     (let ((color-theme-is-global (not frame)))
       (color-theme-initialize)
       (color-theme-blackboard)))
 
-  ;; Faces
+  ;; Extra Faces
   (when (require-maybe 'magit)
     (set-face-attribute 'magit-diff-add nil :foreground "green")
     (set-face-attribute 'magit-diff-del nil :foreground "red")
@@ -86,12 +89,10 @@
 
   (require-maybe 'diff-color)
 
+  ;; Keymap of PuTTY
   (if (eq system-uses-terminfo t)
       (if (require-maybe 'putty)
-          (set-putty-keymap)))
-
-  ;; Set window transparent
-  (set-frame-parameter (selected-frame) 'alpha '(85 50)))
+          (set-putty-keymap))))
 
 (if (daemonp)
     (add-hook 'after-make-frame-functions
@@ -168,9 +169,6 @@
 
 ;;----------------------------------------------------------------------
 ;; Key bindings
-(define-prefix-command 'find-map)
-(define-prefix-command 'tag-map)
-(define-prefix-command 'goto-map)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 (global-set-key (kbd "C-x C-g") 'magit-status)
@@ -184,20 +182,29 @@
 (global-set-key (kbd "C-_") 'shrink-window)
 
 (global-set-key (kbd "<f2>") 'undo)
+(define-prefix-command 'find-map nil
+  "t: taglist   c: csearch\ng: grep      f: occur\nPlease select")
 (global-set-key (kbd "<f3>") 'find-map)
 (global-set-key (kbd "<f3> t") 'taglist)
 (global-set-key (kbd "<f3> g") 'grep)
 (global-set-key (kbd "<f3> f") 'occur)
 (global-set-key (kbd "<f3> c") 'csearch)
+(global-set-key (kbd "<f3> C-g") 'keyboard-quit)
+(define-prefix-command 'tag-map nil
+  "c: clear tag list   s: select tag\nPlease select")
 (global-set-key (kbd "<f4>") 'tag-map)
 (global-set-key (kbd "<f4> c") 'clear-tag-list)
 (global-set-key (kbd "<f4> s") 'select-tag)
+(global-set-key (kbd "<f4> C-g") 'keyboard-quit)
+(define-prefix-command 'goto-map nil
+  "l: goto line\nj: jump to register   s: point to register\nPlease select")
 (global-set-key (kbd "<f6>") 'goto-map)
 (global-set-key (kbd "<f6> l") 'goto-line)
 (global-set-key (kbd "<f6> j") 'jump-to-register)
 (global-set-key (kbd "<f6> s") 'point-to-register)
+(global-set-key (kbd "<f6> C-g") 'keyboard-quit)
 (global-set-key (kbd "<f8>") 'kmacro-start-macro-or-insert-counter)
-(global-set-key (kbd "<f9>") 'kmacro-end-or-call-macro)
+(global-set-key (kbd "C-<f8>") 'kmacro-end-or-call-macro)
 
 
 (global-unset-key (kbd "C-x g"))
