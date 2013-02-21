@@ -1,13 +1,11 @@
 ;;----------------------------------------------------------------------
 ;; Basic environment
 (defvar google-corp nil)
-(let ((google3-dir (concat (file-name-directory
-                            (locate-library "init"))
-                           "/google3")))
+(let ((google3-dir "/google/src/head/depot/eng/elisp"))
   (when (file-directory-p google3-dir)
-      (setq google-corp t)
-      (add-to-list 'load-path google3-dir)
-      (add-to-list 'load-path (concat google3-dir "/third_party"))))
+    (setq google-corp t)
+    (add-to-list 'load-path google3-dir)
+    (add-to-list 'load-path (concat google3-dir "/third_party"))))
 (require 'require-maybe)
 
 ;;----------------------------------------------------------------------

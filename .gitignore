@@ -15,4 +15,3 @@ docs/*.toc
 resume/*.pdf
 resume/*.out
 lisp/auto-save-list
-lisp/google3
